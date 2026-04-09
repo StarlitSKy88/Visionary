@@ -5,6 +5,13 @@
 const crypto = require('crypto')
 const Database = require('../db')
 
+// 角色权限级别
+const ROLE_LEVELS = {
+  admin: 3,
+  member: 2,
+  viewer: 1,
+}
+
 const JWT_SECRET = process.env.JWT_SECRET || 'ai-agent-secret-key-change-in-production'
 
 // Token有效期：7天
@@ -178,6 +185,94 @@ const rateLimiter = {
   }
 }
 
+/**
+ * 团队认证中间件
+ * 验证用户是否为团队成员，并检查角色权限
+ *
+ * @param {string|string[]} requiredRoles - 允许访问的角色列表，或单个角色
+ * @param {string} teamIdSource - team_id 的来源：'body' | 'query' | 'params'
+ */
+function teamAuthMiddleware(requiredRoles = [], teamIdSource = 'body') {
+  // 统一为数组
+  const rolesArray = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles]
+  // 如果未指定角色，则只要是成员即可
+  const checkRole = rolesArray.length > 0
+
+  return (req, res, next) => {
+    // authMiddleware 应该已经运行过
+    if (!req.user || !req.userRecord) {
+      return res.status(401).json({ success: false, error: '请先登录' })
+    }
+
+    // 获取 team_id
+    let teamId
+    if (teamIdSource === 'body') {
+      teamId = req.body?.teamId || req.body?.team_id
+    } else if (teamIdSource === 'query') {
+      teamId = req.query?.teamId || req.query?.team_id
+    } else if (teamIdSource === 'params') {
+      teamId = req.params?.teamId || req.params?.team_id
+    }
+
+    if (!teamId) {
+      return res.status(400).json({ success: false, error: '缺少 team_id 参数' })
+    }
+
+    teamId = parseInt(teamId, 10)
+    if (isNaN(teamId)) {
+      return res.status(400).json({ success: false, error: '无效的 team_id' })
+    }
+
+    // 查找用户在团队中的成员记录
+    const member = Database.teamMembers.getMemberByUserAndTeam(req.user.userId, teamId)
+    if (!member) {
+      return res.status(403).json({ success: false, error: '您不是该团队成员' })
+    }
+
+    // 角色权限检查
+    if (checkRole) {
+      const userRoleLevel = ROLE_LEVELS[member.role] || 0
+      const allowed = rolesArray.some(r => ROLE_LEVELS[r] && ROLE_LEVELS[r] <= userRoleLevel)
+      if (!allowed) {
+        return res.status(403).json({
+          success: false,
+          error: `需要 ${rolesArray.join('/')} 权限，您的角色是 ${member.role}`,
+        })
+      }
+    }
+
+    // 附加团队成员信息到请求
+    req.teamMember = member
+    req.teamId = teamId
+
+    next()
+  }
+}
+
+/**
+ * 便捷方法：仅检查团队成员身份（不检查具体角色）
+ * @param {string} teamIdSource - team_id 来源：'body' | 'query' | 'params'
+ */
+function requireTeamMember(teamIdSource = 'body') {
+  return teamAuthMiddleware([], teamIdSource)
+}
+
+/**
+ * 便捷方法：要求 admin 角色
+ * @param {string} teamIdSource - team_id 来源：'body' | 'query' | 'params'
+ */
+function requireTeamAdmin(teamIdSource = 'body') {
+  return teamAuthMiddleware(['admin'], teamIdSource)
+}
+
+/**
+ * 便捷方法：要求 admin 或 member 角色
+ * @param {string} teamIdSource - team_id 来源：'body' | 'query' | 'params'
+ */
+function requireTeamMemberOrAdmin(teamIdSource = 'body') {
+  return teamAuthMiddleware(['admin', 'member'], teamIdSource)
+}
+
 module.exports = {
   generateToken,
   verifyToken,
@@ -186,4 +281,9 @@ module.exports = {
   sanitizeInput,
   isValidEmail,
   rateLimiter,
+  teamAuthMiddleware,
+  requireTeamMember,
+  requireTeamAdmin,
+  requireTeamMemberOrAdmin,
+  ROLE_LEVELS,
 }

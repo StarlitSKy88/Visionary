@@ -4,6 +4,7 @@ require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const { initDatabase } = require('./db')
+const { init: initScheduler, shutdown: shutdownScheduler } = require('./lib/scheduler')
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -31,7 +32,13 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // 初始化数据库
-initDatabase()
+initDatabase().then(() => {
+  console.log('✅ 数据库初始化完成')
+  // 启动调度器
+  initScheduler()
+}).catch(err => {
+  console.error('数据库初始化失败:', err)
+})
 
 // 路由
 app.use('/api/auth', require('./routes/auth'))
@@ -39,6 +46,7 @@ app.use('/api/agents', require('./routes/agents'))
 app.use('/api/orders', require('./routes/orders'))
 app.use('/api/admin', require('./routes/admin'))
 app.use('/api/analytics', require('./routes/analytics'))
+app.use('/api/team', require('./routes/team'))
 
 // 健康检查
 app.get('/health', (req, res) => {
@@ -80,4 +88,17 @@ app.listen(PORT, () => {
   if (!process.env.OPENROUTER_API_KEY) {
     console.warn('⚠️  OPENROUTER_API_KEY 未设置，AI功能不可用')
   }
+})
+
+// 优雅关闭
+process.on('SIGTERM', () => {
+  console.log('收到 SIGTERM，正在关闭...')
+  shutdownScheduler()
+  process.exit(0)
+})
+
+process.on('SIGINT', () => {
+  console.log('收到 SIGINT，正在关闭...')
+  shutdownScheduler()
+  process.exit(0)
 })
