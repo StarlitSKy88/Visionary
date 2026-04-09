@@ -1,0 +1,236 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================================
+   Nordic Frost Design System
+   Inspired by Nord IDE + Scandinavian winter
+   ======================================== */
+
+@layer base {
+  :root {
+    /* Polar Night palette */
+    --bg-primary: #2e3440;
+    --bg-secondary: #3b4252;
+    --bg-tertiary: #434c5e;
+    --bg-card: #3f4756;
+
+    /* Frost accent */
+    --accent-frost: #88c0d0;
+    --accent-frost-dim: rgba(136, 192, 208, 0.15);
+
+    /* Aurora accents */
+    --accent-aurora: #a3be8c;
+    --accent-aurora-dim: rgba(163, 190, 140, 0.15);
+
+    /* Ember (warm accent for CTAs) */
+    --accent-ember: #bf616a;
+    --accent-ember-dim: rgba(191, 97, 106, 0.15);
+
+    /* Snow (text) */
+    --text-primary: #eceff4;
+    --text-secondary: #d8dee9;
+    --text-muted: #81a1c1;
+    --text-dim: #616e88;
+
+    /* Borders */
+    --border-color: rgba(136, 192, 208, 0.12);
+    --border-hover: rgba(136, 192, 208, 0.25);
+
+    /* Legacy compat - map to new system */
+    --background: 220 17% 22%;
+    --foreground: 224 16% 90%;
+    --card: 220 15% 26%;
+    --card-foreground: 224 16% 90%;
+    --primary: 199 36% 67%;
+    --primary-foreground: 220 17% 15%;
+    --secondary: 220 14% 30%;
+    --secondary-foreground: 224 16% 90%;
+    --muted: 220 14% 30%;
+    --muted-foreground: 215 28% 63%;
+    --accent: 199 36% 67%;
+    --accent-foreground: 220 17% 15%;
+    --destructive: 0 24% 58%;
+    --destructive-foreground: 224 16% 90%;
+    --border: 220 14% 28%;
+    --input: 220 14% 28%;
+    --ring: 199 36% 67%;
+    --radius: 0.75rem;
+  }
+
+  * {
+    border-color: var(--border-color);
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-space-grotesk), 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    font-weight: 300;
+    letter-spacing: 0.01em;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-space-grotesk), 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-secondary); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb { background: var(--text-dim); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  ::selection {
+    background-color: rgba(136, 192, 208, 0.3);
+    color: var(--text-primary);
+  }
+}
+
+@layer components {
+  .card {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(12px);
+  }
+
+  .card-hover {
+    transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .card-hover:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 4px 20px rgba(136, 192, 208, 0.08);
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+
+  .section-padding { padding-top: 4rem; padding-bottom: 4rem; }
+  @media (min-width: 768px) { .section-padding { padding-top: 6rem; padding-bottom: 6rem; } }
+  @media (min-width: 1024px) { .section-padding { padding-top: 8rem; padding-bottom: 8rem; } }
+
+  .container-padding { padding-left: 1rem; padding-right: 1rem; }
+  @media (min-width: 768px) { .container-padding { padding-left: 2rem; padding-right: 2rem; } }
+  @media (min-width: 1024px) { .container-padding { padding-left: 3rem; padding-right: 3rem; } }
+}
+
+/* ========================================
+   Motion System - Orchestrated Entrances
+   ======================================== */
+
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 0.4s;
+  --duration-base: 0.6s;
+  --duration-slow: 0.9s;
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeInUp var(--duration-base) var(--ease-out) forwards;
+}
+
+.scale-in {
+  opacity: 0;
+  animation: scaleIn var(--duration-base) var(--ease-out) forwards;
+}
+
+.slide-right {
+  opacity: 0;
+  animation: slideInRight var(--duration-base) var(--ease-out) forwards;
+}
+
+/* Stagger delays */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+.stagger-6 { animation-delay: 0.6s; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(-32px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInToast {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-slide-in { animation: slideInToast 0.3s var(--ease-out); }
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-float { animation: float 4s ease-in-out infinite; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in, .scale-in, .slide-right {
+    animation: none;
+    opacity: 1;
+  }
+  .animate-float, .animate-pulse-glow {
+    animation: none;
+  }
+}
+
+/* ========================================
+   Background Patterns
+   ======================================== */
+
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(136, 192, 208, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(136, 192, 208, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.bg-radial-frost {
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 0%,
+    rgba(136, 192, 208, 0.12) 0%,
+    transparent 70%
+  );
+}
+
+.bg-radial-aurora {
+  background: radial-gradient(
+    ellipse 50% 40% at 30% 80%,
+    rgba(163, 190, 140, 0.08) 0%,
+    transparent 70%
+  );
+}
+
+.glass {
+  background: rgba(59, 66, 82, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}

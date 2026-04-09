@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+.next/
+.vite/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Database
+data/
+*.sqlite
+*.sqlite3
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+
+# BMad Method
+_bmad/
+_bmad-output/
+
+# Test / Coverage
+coverage/
+
+# Screenshots (临时)
+*.png
+!public/**/*.png
+
+# Harness state
+.harness-state.json
+
+# Playwright MCP
+.playwright-mcp/
+
+# OpenClaw workspace
+openclaw-workspace/
+
+# Claude config
+.claude/
