@@ -15,7 +15,20 @@ function adminAuth(req, res, next) {
 
 router.get('/stats', adminAuth, (req, res) => {
   try {
-    res.json({ success: true, stats: Database.getFullStats() })
+    const raw = Database.getFullStats()
+
+    // 格式化统计响应以匹配前端期望
+    const stats = {
+      totalUsers: raw.userCount || 0,
+      totalAgents: raw.agentCount || 0,
+      totalOrders: raw.orderCount || 0,
+      totalRevenue: raw.revenue || 0,
+      todayOrders: 0,
+      todayTokens: 0,
+      totalTokens: 0,
+      avgLatency: 0,
+    }
+    res.json({ success: true, stats })
   } catch (error) {
     console.error('获取统计失败:', error)
     res.status(500).json({ success: false, error: '获取统计数据失败' })
