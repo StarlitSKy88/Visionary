@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid')
 const Database = require('../db')
 const { formatUserResponse } = require('../db')
 const { generateToken, authMiddleware, sanitizeInput, isValidEmail, rateLimiter } = require('../lib/auth')
+const { sendVerificationCode } = require('../lib/email-service')
 
 router.post('/send-email-code', async (req, res) => {
   const { email } = req.body
@@ -26,7 +27,9 @@ router.post('/send-email-code', async (req, res) => {
 
   Database.createEmailCode(email, code, expiresAt)
 
-  console.log(`\n📧 验证码 → ${email}: ${code} (5分钟有效)\n`)
+  // 尝试发送真实邮件（降级到 console）
+  await sendVerificationCode(email, code)
+
   res.json({ success: true, message: '验证码已发送' })
 })
 

@@ -14,12 +14,14 @@ const AgentRepository = require('./agent-repository')
 const OrderRepository = require('./order-repository')
 const AdminRepository = require('./admin-repository')
 const CodeRepository = require('./code-repository')
+const TokenUsageRepository = require('./token-usage-repository')
 
 const users = new UserRepository(store)
 const agents = new AgentRepository(store)
 const orders = new OrderRepository(store)
 const admin = new AdminRepository(store)
 const codes = new CodeRepository(store)
+const tokenUsage = new TokenUsageRepository(store)
 
 // 向后兼容：保留旧 users.js 的 Database 静态方法接口
 // 旧代码 require('./db/users') 仍可正常工作
@@ -36,6 +38,7 @@ module.exports = {
   orders,
   admin,
   codes,
+  tokenUsage,
 
   // ===== 向后兼容层 =====
   // 旧代码 require('./db/users') 返回的对象有以下方法

@@ -38,6 +38,7 @@ app.use('/api/auth', require('./routes/auth'))
 app.use('/api/agents', require('./routes/agents'))
 app.use('/api/orders', require('./routes/orders'))
 app.use('/api/admin', require('./routes/admin'))
+app.use('/api/analytics', require('./routes/analytics'))
 
 // 健康检查
 app.get('/health', (req, res) => {
