@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # Frontend + Backend combined (standalone mode)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    environment:
+      # Frontend
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      # Backend
+      - PORT=3001
+      - DB_PATH=/app/data/database.sqlite
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
+      - ADMIN_KEY=${ADMIN_KEY:-admin123}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      # Email (Resend)
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - EMAIL_FROM=${EMAIL_FROM:-AI经营助手 <noreply@yourdomain.com>}
+      # SMTP (optional)
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+    volumes:
+      - ./data:/app/data
+      - ./data/database.sqlite:/app/data/database.sqlite
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Alternative: Separate services for scaling
+  # backend:
+  #   build:
+  #     context: ./server
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3001:3001"
+  #   environment:
+  #     - DB_PATH=/app/data/database.sqlite
+  #     - JWT_SECRET=${JWT_SECRET}
+  #     - ADMIN_KEY=${ADMIN_KEY}
+  #     - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+  #   volumes:
+  #     - ./data:/app/data
+  #   restart: unless-stopped
+  #
+  # frontend:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.frontend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://backend:3001
+  #   depends_on:
+  #     - backend
+  #   restart: unless-stopped

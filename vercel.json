@@ -1,0 +1,49 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm ci",
+  "regions": ["sin1"],
+  "env": {
+    "NEXT_PUBLIC_API_URL": "@api-url"
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, x-admin-key" }
+      ]
+    },
+    {
+      "source": "/api/admin/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "@admin-allowed-origins" },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/auth/:path*",
+      "destination": "@api-url/api/auth/:path*"
+    },
+    {
+      "source": "/api/agents/:path*",
+      "destination": "@api-url/api/agents/:path*"
+    },
+    {
+      "source": "/api/orders/:path*",
+      "destination": "@api-url/api/orders/:path*"
+    },
+    {
+      "source": "/api/admin/:path*",
+      "destination": "@api-url/api/admin/:path*"
+    },
+    {
+      "source": "/api/analytics/:path*",
+      "destination": "@api-url/api/analytics/:path*"
+    }
+  ]
+}
