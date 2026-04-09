@@ -3,7 +3,9 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/misc'
+import { LangSwitch } from '@/components/ui/lang-switch'
 import { cn } from '@/lib/utils'
+import { useI18n } from '@/i18n'
 import {
   ArrowRight,
   Shield,
@@ -12,6 +14,8 @@ import {
 } from 'lucide-react'
 
 export function Navbar() {
+  const { t } = useI18n()
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-[rgba(136,192,208,0.1)]">
       <div className="mx-auto max-w-7xl px-4 md:px-8 h-16 flex items-center justify-between">
@@ -20,19 +24,20 @@ export function Navbar() {
             AI
           </div>
           <span className="font-display font-semibold text-[#eceff4] hidden sm:block tracking-tight">
-            AI经营助手
+            {t.common.appName}
           </span>
         </Link>
 
         <div className="flex items-center gap-2">
+          <LangSwitch />
           <Link href="/login">
             <Button variant="ghost" size="sm">
-              登录
+              {t.common.login}
             </Button>
           </Link>
           <Link href="/register">
             <Button size="sm">
-              免费试用
+              {t.home.pricingFree}
             </Button>
           </Link>
         </div>

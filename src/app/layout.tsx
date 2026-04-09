@@ -3,6 +3,7 @@ import { Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import { ToastProvider } from '@/components/ui/toast'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { I18nProvider } from '@/i18n'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -26,9 +27,11 @@ export default function RootLayout({
     <html lang="zh-CN" className={spaceGrotesk.variable}>
       <body className="antialiased bg-[#2e3440] text-[#eceff4]">
         <ErrorBoundary>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
+          <I18nProvider>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </I18nProvider>
         </ErrorBoundary>
       </body>
     </html>
