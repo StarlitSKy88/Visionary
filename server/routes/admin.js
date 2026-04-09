@@ -98,4 +98,27 @@ router.post('/knowledge', adminAuth, (req, res) => {
   }
 })
 
+// Token 用量统计（管理后台专用）
+router.get('/token-stats', adminAuth, (req, res) => {
+  try {
+    if (!Database.tokenUsage) {
+      return res.json({ success: true, stats: { totalCalls: 0, totalTokens: 0, todayCalls: 0, todayTokens: 0, avgLatency: 0 }, byModel: [], byTask: [] })
+    }
+    Database.tokenUsage.ensureTable()
+    const stats = Database.tokenUsage.getUsageStats(30)
+    const byModel = Database.tokenUsage.getUsageByModel(30)
+    const byTask = Database.tokenUsage.getUsageByTask(30)
+
+    res.json({
+      success: true,
+      stats: stats || { totalCalls: 0, totalTokens: 0, todayCalls: 0, todayTokens: 0, avgLatency: 0 },
+      byModel: byModel || [],
+      byTask: byTask || [],
+    })
+  } catch (error) {
+    console.error('获取Token统计失败:', error)
+    res.status(500).json({ success: false, error: '获取失败' })
+  }
+})
+
 module.exports = router
