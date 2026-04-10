@@ -12,6 +12,7 @@ const router = express.Router()
 const Database = require('../db')
 const { authMiddleware, requireTeamMember, requireTeamAdmin, requireTeamMemberOrAdmin, ROLE_LEVELS } = require('../lib/auth')
 const nlService = require('../lib/nl-service')
+const { safeLog } = require('../lib/logger')
 
 // ===== 工具函数 =====
 
@@ -524,7 +525,7 @@ router.post('/teams/:teamId/nl', authMiddleware, requireTeamMember('params'), as
       })
       return success(res, result)
     } catch (err) {
-      console.error('NL 执行失败:', err)
+      safeLog({ error: err.message, type: 'nl_execute_error' }, '❌ NL 执行失败')
       return error(res, 500, '执行失败：' + err.message)
     }
   }
@@ -539,7 +540,7 @@ router.post('/teams/:teamId/nl', authMiddleware, requireTeamMember('params'), as
 
     return success(res, result)
   } catch (err) {
-    console.error('NL 处理失败:', err)
+    safeLog({ error: err.message, type: 'nl_process_error' }, '❌ NL 处理失败')
     return error(res, 500, '处理失败：' + err.message)
   }
 })

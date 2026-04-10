@@ -11,6 +11,7 @@
  */
 
 const aiService = require('./ai-service')
+const { safeLog } = require('./logger')
 
 // 意图分类 prompt
 const CLASSIFY_SYSTEM_PROMPT = `你是一个专业的团队管理助手。你需要将用户的自然语言输入分类到以下6种意图之一：
@@ -93,7 +94,7 @@ async function classifyIntent(message, teamContext = '') {
       entities: result.entities || {},
     }
   } catch (error) {
-    console.error('NL 分类失败:', error)
+    safeLog({ error: error.message, type: 'nl_classify_error' }, '❌ NL 分类失败')
     // 超时或其他错误，返回低置信度的通用查询
     return {
       intent: 'general_query',

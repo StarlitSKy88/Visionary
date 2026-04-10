@@ -7,6 +7,7 @@
 
 const cron = require('node-cron')
 const Database = require('../db')
+const { safeLog } = require('./logger')
 
 // 存储活跃的 cron 任务
 const activeJobs = new Map()
@@ -43,7 +44,7 @@ async function executeJob(schedule) {
   const db = getDb()
 
   try {
-    console.log(`[Scheduler] 执行任务 #${id} (${job_type})`)
+    safeLog({ scheduleId: id, jobType: job_type, type: 'job_executed' }, '[Scheduler] 执行任务')
 
     switch (job_type) {
       case 'reminder': {
@@ -57,7 +58,7 @@ async function executeJob(schedule) {
           targetId: id,
           details: { message },
         })
-        console.log(`[Scheduler] 提醒任务 #${id}: ${message}`)
+        safeLog({ scheduleId: id, message, type: 'reminder_sent' }, '[Scheduler] 提醒任务')
         break
       }
 
@@ -70,7 +71,7 @@ async function executeJob(schedule) {
             status: 'pending',
             memberId: member.id,
           })
-          console.log(`[Scheduler] 请假汇总 #${id}: ${member.email} - 待审批: ${pendingRequests.length}`)
+          safeLog({ scheduleId: id, email: member.email, pending: pendingRequests.length, type: 'leave_summary' }, '[Scheduler] 请假汇总')
         }
         break
       }
@@ -82,14 +83,14 @@ async function executeJob(schedule) {
           const balances = db.leave.getBalance(member.id)
           const lowBalance = balances.filter(b => (b.total_days - b.used_days) < 2)
           if (lowBalance.length > 0) {
-            console.log(`[Scheduler] 余额预警 #${id}: ${member.email} - ${lowBalance.map(b => b.leave_type).join(', ')}`)
+            safeLog({ scheduleId: id, email: member.email, lowBalance: lowBalance.map(b => b.leave_type), type: 'balance_check' }, '[Scheduler] 余额预警')
           }
         }
         break
       }
 
       default:
-        console.log(`[Scheduler] 未知任务类型: ${job_type}`)
+        safeLog({ scheduleId: id, jobType: job_type, type: 'unknown_job_type' }, '[Scheduler] 未知任务类型')
     }
 
     // 更新下次执行时间
@@ -98,7 +99,7 @@ async function executeJob(schedule) {
       db.schedules.updateNextRun(id, nextRunAt)
     }
   } catch (error) {
-    console.error(`[Scheduler] 任务 #${id} 执行失败:`, error)
+    safeLog({ scheduleId: id, error: error.message, type: 'job_failed' }, `[Scheduler] 任务 #${id} 执行失败`)
   }
 }
 
@@ -114,7 +115,7 @@ function startJob(schedule) {
 
   // 验证 cron 表达式
   if (!cron.validate(cron_expression)) {
-    console.warn(`[Scheduler] 无效的 cron 表达式: ${cron_expression}`)
+    safeLog({ cronExpression: cron_expression, type: 'invalid_cron' }, `[Scheduler] 无效的 cron 表达式`)
     return
   }
 
@@ -132,7 +133,7 @@ function startJob(schedule) {
   })
 
   activeJobs.set(id, job)
-  console.log(`[Scheduler] 已启动任务 #${id} (${cron_expression})`)
+  safeLog({ scheduleId: id, cronExpression: cron_expression, type: 'job_started' }, `[Scheduler] 已启动任务`)
 }
 
 /**
@@ -142,7 +143,7 @@ function stopJob(scheduleId) {
   if (activeJobs.has(scheduleId)) {
     activeJobs.get(scheduleId).stop()
     activeJobs.delete(scheduleId)
-    console.log(`[Scheduler] 已停止任务 #${scheduleId}`)
+    safeLog({ scheduleId, type: 'job_stopped' }, `[Scheduler] 已停止任务`)
   }
 }
 
@@ -150,11 +151,11 @@ function stopJob(scheduleId) {
  * 从数据库加载所有定时任务并启动
  */
 function loadAndStartAll() {
-  console.log('[Scheduler] 从数据库加载定时任务...')
+  safeLog({ type: 'scheduler_loading' }, '[Scheduler] 从数据库加载定时任务...')
 
   const db = getDb()
   const schedules = db.schedules.getEnabledSchedules()
-  console.log(`[Scheduler] 找到 ${schedules.length} 个启用的定时任务`)
+  safeLog({ count: schedules.length, type: 'schedules_loaded' }, `[Scheduler] 找到 ${schedules.length} 个启用的定时任务`)
 
   for (const schedule of schedules) {
     startJob(schedule)
@@ -165,7 +166,7 @@ function loadAndStartAll() {
  * 初始化调度器
  */
 function init() {
-  console.log('[Scheduler] 初始化调度器...')
+  safeLog({ type: 'scheduler_init' }, '[Scheduler] 初始化调度器...')
   loadAndStartAll()
 }
 
@@ -173,10 +174,10 @@ function init() {
  * 优雅关闭
  */
 function shutdown() {
-  console.log('[Scheduler] 关闭调度器...')
+  safeLog({ type: 'scheduler_shutdown' }, '[Scheduler] 关闭调度器...')
   for (const [id, job] of activeJobs) {
     job.stop()
-    console.log(`[Scheduler] 已停止任务 #${id}`)
+    safeLog({ scheduleId: id, type: 'job_stopped_during_shutdown' }, `[Scheduler] 已停止任务`)
   }
   activeJobs.clear()
 }

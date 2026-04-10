@@ -6,6 +6,8 @@
 const initSqlJs = require('sql.js')
 const path = require('path')
 const fs = require('fs')
+const { safeLog } = require('../lib/logger')
+const { runMigrations } = require('./migrations')
 
 const dbPath = path.join(__dirname, '../../data/database.sqlite')
 let db = null
@@ -238,8 +240,11 @@ async function initDatabase() {
   // 为 team_members 创建索引（查找成员时使用）
   db.run('CREATE INDEX IF NOT EXISTS idx_team_members_team_user ON team_members(team_id, user_id)')
 
+  // 运行数据库迁移
+  runMigrations(store)
+
   saveDatabase()
-  console.log('✅ Database initialized at', dbPath)
+  safeLog({ dbPath, type: 'db_store_init' }, '✅ Database initialized')
 }
 
 /**

@@ -6,6 +6,7 @@ const express = require('express')
 const router = express.Router()
 const { authMiddleware } = require('../lib/auth')
 const Database = require('../db')
+const { safeLog } = require('../lib/logger')
 
 // SSE 实时生成进度
 router.get('/generate/:sessionId', authMiddleware, (req, res) => {
@@ -61,7 +62,7 @@ router.get('/token-stats', authMiddleware, (req, res) => {
       byTask: byTask || [],
     })
   } catch (error) {
-    console.error('获取Token统计失败:', error)
+    safeLog({ error: error.message, type: 'analytics_token_stats_error' }, '❌ 获取Token统计失败')
     res.status(500).json({ success: false, error: '获取失败' })
   }
 })

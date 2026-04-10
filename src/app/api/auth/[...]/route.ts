@@ -19,25 +19,33 @@ export async function DELETE(request: NextRequest) {
 }
 
 async function proxyRequest(request: NextRequest) {
-  const path = request.nextUrl.pathname.replace('/api', '')
-  const searchParams = request.nextUrl.searchParams.toString()
-  const url = `${API_URL}${path}${searchParams ? '?' + searchParams : ''}`
+  try {
+    const path = request.nextUrl.pathname.replace('/api', '')
+    const searchParams = request.nextUrl.searchParams.toString()
+    const url = `${API_URL}${path}${searchParams ? '?' + searchParams : ''}`
 
-  const headers: HeadersInit = {}
-  const auth = request.headers.get('authorization')
-  if (auth) headers['authorization'] = auth
+    const headers: HeadersInit = {}
+    const auth = request.headers.get('authorization')
+    if (auth) headers['authorization'] = auth
 
-  const body = request.method !== 'GET' ? await request.text() : undefined
+    const body = request.method !== 'GET' ? await request.text() : undefined
 
-  const response = await fetch(url, {
-    method: request.method,
-    headers,
-    body,
-  })
+    const response = await fetch(url, {
+      method: request.method,
+      headers,
+      body,
+    })
 
-  const data = await response.text()
-  return new NextResponse(data, {
-    status: response.status,
-    headers: { 'Content-Type': 'application/json' },
-  })
+    const data = await response.text()
+    return new NextResponse(data, {
+      status: response.status,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  } catch (error) {
+    console.error('API路由代理错误:', error)
+    return NextResponse.json(
+      { success: false, error: '服务器内部错误，请稍后重试' },
+      { status: 500 }
+    )
+  }
 }

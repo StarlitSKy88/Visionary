@@ -7,6 +7,7 @@
 const { OpenRouterProvider, MODELS: OR_MODELS } = require('./openrouter-provider')
 const { AnthropicProvider, MODELS: ANTHROPIC_MODELS } = require('./anthropic-provider')
 const { DeepSeekProvider, MODELS: DEEPSEEK_MODELS } = require('./deepseek-provider')
+const { safeLog } = require('../../lib/logger')
 
 // 按任务类型的模型路由策略
 const TASK_ROUTES = {
@@ -115,7 +116,7 @@ class ProviderRouter {
     state.failures++
     state.cooldownUntil = Date.now() + CB_COOLDOWN_MS
     this._modelState[key] = state
-    console.warn(`⚡ 熔断器触发: ${providerId}/${model} (失败${state.failures}次)，冷却至 ${new Date(state.cooldownUntil).toLocaleTimeString()}`)
+    safeLog({ providerId, model, failures: state.failures, cooldownUntil: new Date(state.cooldownUntil).toISOString(), type: 'circuit_breaker_tripped' }, `⚡ 熔断器触发`)
   }
 
   /**
@@ -143,7 +144,7 @@ class ProviderRouter {
 
     if (state.failures >= CB_MAX_FAILURES) {
       state.cooldownUntil = Date.now() + CB_COOLDOWN_MS
-      console.warn(`⚡ 熔断器触发: ${providerId}/${model} (连续失败${state.failures}次)，冷却${CB_COOLDOWN_MS/1000/60}分钟`)
+      safeLog({ providerId, model, failures: state.failures, cooldownMinutes: CB_COOLDOWN_MS / 1000 / 60, type: 'circuit_breaker_tripped' }, `⚡ 熔断器触发`)
     }
 
     this._modelState[key] = state
@@ -172,13 +173,13 @@ class ProviderRouter {
     // 如果配置了 Anthropic Key 则启用
     if (process.env.ANTHROPIC_API_KEY) {
       this.providers.anthropic = new AnthropicProvider({})
-      console.log('✅ Anthropic provider 已启用')
+      safeLog({ provider: 'anthropic', type: 'provider_enabled' }, '✅ Anthropic provider 已启用')
     }
 
     // 如果配置了 DeepSeek Key 则启用
     if (process.env.DEEPSEEK_API_KEY) {
       this.providers.deepseek = new DeepSeekProvider({})
-      console.log('✅ DeepSeek provider 已启用')
+      safeLog({ provider: 'deepseek', type: 'provider_enabled' }, '✅ DeepSeek provider 已启用')
     }
   }
 
@@ -267,7 +268,7 @@ class ProviderRouter {
       if (route.fallback) {
         const fallbackProvider = this.providers[route.fallback.provider]
         if (fallbackProvider && fallbackProvider.isConfigured) {
-          console.warn(`⚠️ ${route.provider.id}/${route.model} 失败，降级到 ${route.fallback.provider}/${route.fallback.model}:`, error.message)
+          safeLog({ fromProvider: route.provider.id, fromModel: route.model, toProvider: route.fallback.provider, toModel: route.fallback.model, error: error.message, type: 'provider_fallback' }, `⚠️ 提供商降级`)
           try {
             const fbResult = await fallbackProvider.chat(messages, {
               model: route.fallback.model,

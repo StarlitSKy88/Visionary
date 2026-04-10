@@ -37,7 +37,7 @@
 ## Tech Debt ✅
 - [x] **WAL mode for SQLite** — enabled in `store-sqlite.js`
 - [x] **Audit log completeness** — implemented in `audit_logs` table with all required event types
-- [ ] **Circuit breaker for multi-model routing** — check if providers/router.js already has per-model failure tracking; add if missing (skip model after 3 consecutive failures, 5min cooldown)
+- [x] **Circuit breaker for multi-model routing** — 已实现: 连续失败3次后触发冷却，5分钟后自动恢复，支持 recordSuccess/recordFailure/getCircuitBreakerStatus
 - [x] **NL LLM timeout** — 10s timeout set on classifyIntent() calls
 
 ## Verification

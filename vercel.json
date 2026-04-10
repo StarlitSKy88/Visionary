@@ -5,7 +5,8 @@
   "installCommand": "npm ci",
   "regions": ["sin1"],
   "env": {
-    "NEXT_PUBLIC_API_URL": "@api-url"
+    "NEXT_PUBLIC_API_URL": "@api-url",
+    "ADMIN_ALLOWED_ORIGINS": "@admin-allowed-origins"
   },
   "headers": [
     {
@@ -13,7 +14,7 @@
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, x-admin-key" }
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, x-admin-key, x-requested-with" }
       ]
     },
     {
@@ -44,6 +45,10 @@
     {
       "source": "/api/analytics/:path*",
       "destination": "@api-url/api/analytics/:path*"
+    },
+    {
+      "source": "/api/team/:path*",
+      "destination": "@api-url/api/team/:path*"
     }
   ]
 }
