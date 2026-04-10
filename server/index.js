@@ -4,6 +4,8 @@ require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const { initDatabase } = require('./db')
+const { init: initScheduler, shutdown: shutdownScheduler } = require('./lib/scheduler')
+const { safeLog } = require('./lib/logger')
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -13,25 +15,33 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
 }))
-app.use(express.json({ limit: '1mb' }))
+// 捕获原始 body（用于微信支付回调验签）
+app.use(express.json({
+  limit: '1mb',
+  verify: (req, res, buf) => { req.rawBody = buf.toString() }
+}))
 app.use(express.urlencoded({ extended: true }))
 
-// 请求日志（仅非生产环境）
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    const start = Date.now()
-    res.on('finish', () => {
-      const duration = Date.now() - start
-      if (req.path !== '/health') {
-        console.log(`${req.method} ${req.path} → ${res.statusCode} (${duration}ms)`)
-      }
-    })
-    next()
+// 请求日志
+app.use((req, res, next) => {
+  const start = Date.now()
+  res.on('finish', () => {
+    const duration = Date.now() - start
+    if (req.path !== '/health') {
+      safeLog({ method: req.method, path: req.path, status: res.statusCode, durationMs: duration, type: 'http_request' })
+    }
   })
-}
+  next()
+})
 
 // 初始化数据库
-initDatabase()
+initDatabase().then(() => {
+  safeLog({ type: 'db_initialized' }, '✅ 数据库初始化完成')
+  // 启动调度器
+  initScheduler()
+}).catch(err => {
+  safeLog({ error: err.message, type: 'db_init_failed' }, '❌ 数据库初始化失败')
+})
 
 // 路由
 app.use('/api/auth', require('./routes/auth'))
@@ -39,6 +49,7 @@ app.use('/api/agents', require('./routes/agents'))
 app.use('/api/orders', require('./routes/orders'))
 app.use('/api/admin', require('./routes/admin'))
 app.use('/api/analytics', require('./routes/analytics'))
+app.use('/api/team', require('./routes/team'))
 
 // 健康检查
 app.get('/health', (req, res) => {
@@ -56,7 +67,7 @@ app.use((req, res) => {
 
 // 全局错误处理
 app.use((err, req, res, next) => {
-  console.error('Unhandled Error:', err)
+  safeLog({ error: err.message, stack: err.stack, type: 'unhandled_error' }, '❌ Unhandled Error')
 
   if (err.type === 'entity.parse.failed') {
     return res.status(400).json({ success: false, error: '请求格式错误' })
@@ -73,11 +84,18 @@ app.use((err, req, res, next) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`)
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`)
+  safeLog({ port: PORT, env: process.env.NODE_ENV || 'development', type: 'server_started' }, `🚀 Server running on http://localhost:${PORT}`)
+})
 
-  // 检查关键环境变量
-  if (!process.env.OPENROUTER_API_KEY) {
-    console.warn('⚠️  OPENROUTER_API_KEY 未设置，AI功能不可用')
-  }
+// 优雅关闭
+process.on('SIGTERM', () => {
+  safeLog({ type: 'shutdown_signal', signal: 'SIGTERM' }, '收到 SIGTERM，正在关闭...')
+  shutdownScheduler()
+  process.exit(0)
+})
+
+process.on('SIGINT', () => {
+  safeLog({ type: 'shutdown_signal', signal: 'SIGINT' }, '收到 SIGINT，正在关闭...')
+  shutdownScheduler()
+  process.exit(0)
 })

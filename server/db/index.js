@@ -15,6 +15,12 @@ const OrderRepository = require('./order-repository')
 const AdminRepository = require('./admin-repository')
 const CodeRepository = require('./code-repository')
 const TokenUsageRepository = require('./token-usage-repository')
+const TeamRepository = require('./team-repository')
+const TeamMemberRepository = require('./team-member-repository')
+const LeaveRepository = require('./leave-repository')
+const BusinessRulesRepository = require('./business-rules-repository')
+const ScheduleRepository = require('./schedule-repository')
+const AuditRepository = require('./audit-repository')
 
 const users = new UserRepository(store)
 const agents = new AgentRepository(store)
@@ -22,6 +28,12 @@ const orders = new OrderRepository(store)
 const admin = new AdminRepository(store)
 const codes = new CodeRepository(store)
 const tokenUsage = new TokenUsageRepository(store)
+const teams = new TeamRepository(store)
+const teamMembers = new TeamMemberRepository(store)
+const leave = new LeaveRepository(store)
+const businessRules = new BusinessRulesRepository(store)
+const schedules = new ScheduleRepository(store)
+const audit = new AuditRepository(store)
 
 // 向后兼容：保留旧 users.js 的 Database 静态方法接口
 // 旧代码 require('./db/users') 仍可正常工作
@@ -81,6 +93,14 @@ module.exports = {
   updateTicketStatus: (ticketId, status) => admin.updateTicketStatus(ticketId, status),
   getRecentKnowledge: (limit) => admin.getRecentKnowledge(limit),
   addKnowledge: (industry, keyword, content, source) => admin.addKnowledge(industry, keyword, content, source),
+
+  // 团队操作 (Team Ops)
+  teams,
+  teamMembers,
+  leave,
+  businessRules,
+  schedules,
+  audit,
 
   // 工具函数
   formatUserResponse,

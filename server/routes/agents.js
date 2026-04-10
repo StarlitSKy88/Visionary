@@ -3,6 +3,7 @@ const router = express.Router()
 const { AgentEngine } = require('../agents/engine')
 const Database = require('../db')
 const { authMiddleware, sanitizeInput, rateLimiter } = require('../lib/auth')
+const { safeLog } = require('../lib/logger')
 
 router.post('/create', authMiddleware, async (req, res) => {
   const { input } = req.body
@@ -30,7 +31,7 @@ router.post('/create', authMiddleware, async (req, res) => {
 
     res.json({ success: true, agent: { id: agent.id, ...result } })
   } catch (error) {
-    console.error('Agent生成失败:', error)
+    safeLog({ error: error.message, type: 'agent_generate_error' }, '❌ Agent生成失败')
     res.status(500).json({ success: false, error: '生成失败，请稍后重试' })
   }
 })
@@ -40,7 +41,7 @@ router.get('/list', authMiddleware, (req, res) => {
     const agents = Database.getAgentsByUserId(req.user.userId)
     res.json({ success: true, agents })
   } catch (error) {
-    console.error('获取Agent列表失败:', error)
+    safeLog({ error: error.message, type: 'agent_list_error' }, '❌ 获取Agent列表失败')
     res.status(500).json({ success: false, error: '获取失败' })
   }
 })
@@ -64,7 +65,7 @@ router.post('/regenerate/:id', authMiddleware, async (req, res) => {
     const result = await engine.generate(sanitizeInput(input), userId)
     res.json({ success: true, agent: result })
   } catch (error) {
-    console.error('重新生成失败:', error)
+    safeLog({ error: error.message, type: 'agent_regenerate_error' }, '❌ 重新生成失败')
     res.status(500).json({ success: false, error: '生成失败' })
   }
 })
@@ -111,7 +112,7 @@ router.post('/:id/chat', authMiddleware, async (req, res) => {
 
     res.json({ success: true, response })
   } catch (error) {
-    console.error('对话失败:', error)
+    safeLog({ error: error.message, type: 'agent_chat_error' }, '❌ 对话失败')
     res.status(500).json({ success: false, error: '对话失败，请稍后重试' })
   }
 })
@@ -124,7 +125,7 @@ router.get('/:id/messages', authMiddleware, (req, res) => {
     const messages = Database.getChatMessages(id, userId, parseInt(req.query.limit) || 50)
     res.json({ success: true, messages })
   } catch (error) {
-    console.error('获取聊天历史失败:', error)
+    safeLog({ error: error.message, type: 'agent_history_error' }, '❌ 获取聊天历史失败')
     res.status(500).json({ success: false, error: '获取失败' })
   }
 })

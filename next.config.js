@@ -31,6 +31,10 @@ const nextConfig = {
         source: '/api/analytics/:path*',
         destination: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/analytics/:path*`,
       },
+      {
+        source: '/api/team/:path*',
+        destination: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/team/:path*`,
+      },
     ]
   },
 }

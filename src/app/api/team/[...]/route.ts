@@ -20,11 +20,13 @@ export async function DELETE(request: NextRequest) {
 
 async function proxyRequest(request: NextRequest) {
   try {
-    const path = request.nextUrl.pathname.replace('/api', '')
+    const path = request.nextUrl.pathname.replace('/api/team', '/api/team')
     const searchParams = request.nextUrl.searchParams.toString()
     const url = `${API_URL}${path}${searchParams ? '?' + searchParams : ''}`
 
-    const headers: HeadersInit = {}
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    }
     const auth = request.headers.get('authorization')
     if (auth) headers['authorization'] = auth
 
@@ -42,7 +44,7 @@ async function proxyRequest(request: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
     })
   } catch (error) {
-    console.error('API路由代理错误:', error)
+    console.error('Team API路由代理错误:', error)
     return NextResponse.json(
       { success: false, error: '服务器内部错误，请稍后重试' },
       { status: 500 }

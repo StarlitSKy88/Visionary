@@ -6,6 +6,8 @@
 const initSqlJs = require('sql.js')
 const path = require('path')
 const fs = require('fs')
+const { safeLog } = require('../lib/logger')
+const { runMigrations } = require('./migrations')
 
 const dbPath = path.join(__dirname, '../../data/database.sqlite')
 let db = null
@@ -53,6 +55,9 @@ async function initDatabase() {
   } else {
     db = new SQL.Database()
   }
+
+  // 启用 WAL 模式（支持多用户并发写入）
+  db.run('PRAGMA journal_mode=WAL')
 
   // 建表
   const tables = [
@@ -139,14 +144,107 @@ async function initDatabase() {
       FOREIGN KEY (agent_id) REFERENCES agents(id),
       FOREIGN KEY (user_id) REFERENCES users(id)
     )`,
+
+    // ===== Team Ops 内存系统 =====
+    `CREATE TABLE IF NOT EXISTS teams (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      owner_user_id INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (owner_user_id) REFERENCES users(id)
+    )`,
+
+    `CREATE TABLE IF NOT EXISTS team_members (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      team_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      role TEXT NOT NULL DEFAULT 'member',
+      joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (team_id) REFERENCES teams(id),
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(team_id, user_id)
+    )`,
+
+    `CREATE TABLE IF NOT EXISTS leave_balances (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      team_member_id INTEGER NOT NULL,
+      leave_type TEXT NOT NULL,
+      total_days REAL NOT NULL DEFAULT 0,
+      used_days REAL NOT NULL DEFAULT 0,
+      year INTEGER NOT NULL,
+      FOREIGN KEY (team_member_id) REFERENCES team_members(id),
+      UNIQUE(team_member_id, leave_type, year)
+    )`,
+
+    `CREATE TABLE IF NOT EXISTS leave_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      team_member_id INTEGER NOT NULL,
+      leave_type TEXT NOT NULL,
+      start_date TEXT NOT NULL,
+      end_date TEXT NOT NULL,
+      days REAL NOT NULL,
+      reason TEXT,
+      status TEXT NOT NULL DEFAULT 'pending',
+      reviewed_by INTEGER,
+      reviewed_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (team_member_id) REFERENCES team_members(id),
+      FOREIGN KEY (reviewed_by) REFERENCES users(id)
+    )`,
+
+    `CREATE TABLE IF NOT EXISTS business_rules (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      team_id INTEGER NOT NULL,
+      rule_type TEXT NOT NULL,
+      rule_config TEXT NOT NULL,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (team_id) REFERENCES teams(id)
+    )`,
+
+    `CREATE TABLE IF NOT EXISTS recurring_schedules (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      team_id INTEGER NOT NULL,
+      job_type TEXT NOT NULL,
+      cron_expression TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      next_run_at DATETIME,
+      last_run_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (team_id) REFERENCES teams(id)
+    )`,
+
+    `CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      team_id INTEGER NOT NULL,
+      actor_user_id INTEGER NOT NULL,
+      action TEXT NOT NULL,
+      target_type TEXT,
+      target_id INTEGER,
+      details TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (team_id) REFERENCES teams(id),
+      FOREIGN KEY (actor_user_id) REFERENCES users(id)
+    )`,
   ]
 
   for (const sql of tables) {
     db.run(sql)
   }
 
+  // 为 recurring_schedules 创建索引（查询待执行任务时使用）
+  db.run('CREATE INDEX IF NOT EXISTS idx_recurring_schedules_enabled_next_run ON recurring_schedules(enabled, next_run_at)')
+
+  // 为 team_members 创建索引（查找成员时使用）
+  db.run('CREATE INDEX IF NOT EXISTS idx_team_members_team_user ON team_members(team_id, user_id)')
+
+  // 运行数据库迁移
+  runMigrations(store)
+
   saveDatabase()
-  console.log('✅ Database initialized at', dbPath)
+  safeLog({ dbPath, type: 'db_store_init' }, '✅ Database initialized')
 }
 
 /**

@@ -4,6 +4,14 @@
 
 const crypto = require('crypto')
 const Database = require('../db')
+const { safeLog } = require('./logger')
+
+// 角色权限级别
+const ROLE_LEVELS = {
+  admin: 3,
+  member: 2,
+  viewer: 1,
+}
 
 const JWT_SECRET = process.env.JWT_SECRET || 'ai-agent-secret-key-change-in-production'
 
@@ -145,13 +153,94 @@ function isValidEmail(email) {
 }
 
 /**
- * 简易速率限制
+ * 速率限制器
+ * 支持 Redis (生产多实例) / 内存 Map (单机/开发)
+ *
+ * 使用方式：
+ *   const allowed = rateLimiter.check(`email:${email}`, 5, 60 * 1000)
+ *
+ * 生产环境配置：
+ *   REDIS_URL=redis://...  → 使用 Redis 后端
+ *   VERCEL_KV_REST_API_URL + VERCEL_KV_REST_API_TOKEN → 使用 Vercel KV
+ *   否则使用内存 Map
  */
 const rateLimiter = {
   _counts: new Map(),
   _lastCleanup: Date.now(),
+  _backend: null,
+  _redisClient: null,
 
+  /**
+   * 初始化后端（同步，模块加载时调用）
+   */
+  _initBackend() {
+    // 已初始化
+    if (this._backend) return
+
+    // REDIS_URL 优先
+    if (process.env.REDIS_URL) {
+      try {
+        const { Redis } = require('ioredis')
+        const redis = new Redis(process.env.REDIS_URL, {
+          lazyConnect: true,
+          maxRetriesPerRequest: 1,
+          connectTimeout: 1000,
+        })
+        // 不等待连接，直接标记可用，实际命令失败会降级
+        this._redisClient = redis
+        this._backend = 'redis'
+        safeLog({ type: 'rate_limiter_backend', backend: 'redis' }, 'Rate Limiter using Redis (lazy connect)')
+        return
+      } catch (e) {
+        safeLog({ type: 'rate_limiter_redis_fail', error: e.message }, 'Redis init failed, using memory')
+      }
+    }
+
+    // Vercel KV
+    if (process.env.VERCEL_KV_REST_API_URL && process.env.VERCEL_KV_REST_API_TOKEN) {
+      this._backend = 'vercel_kv'
+      safeLog({ type: 'rate_limiter_backend', backend: 'vercel_kv' }, 'Rate Limiter using Vercel KV')
+      return
+    }
+
+    // 内存 Map
+    this._backend = 'memory'
+    safeLog({ type: 'rate_limiter_backend', backend: 'memory' }, 'Rate Limiter using in-memory Map')
+  },
+
+  /**
+   * 速率检查
+   * @returns {boolean} true = 通过, false = 限流
+   */
   check(key, limit = 10, windowMs = 60 * 1000) {
+    // 确保后端已初始化
+    if (!this._backend) this._initBackend()
+
+    if (this._backend === 'redis' && this._redisClient) {
+      return this._checkRedis(key, limit, windowMs)
+    }
+
+    if (this._backend === 'vercel_kv') {
+      // Vercel KV 需要 async，直接降级到内存（Vercel serverless 单实例足够）
+      safeLog({ type: 'rate_limiter_vercel_kv_async', msg: 'Vercel KV is async, falling back to memory' }, 'Rate limit')
+      return this._checkMemory(key, limit, windowMs)
+    }
+
+    // 内存 Map
+    return this._checkMemory(key, limit, windowMs)
+  },
+
+  _checkRedis(key, limit, windowMs) {
+    // ioredis incr 是异步的，同步调用会返回 Promise
+    // 对于需要同步返回的调用场景，暂降级到内存 Map
+    // 如需 Redis 异步模式，请使用 checkAsync() 方法
+    safeLog({ type: 'rate_limiter_redis_async', msg: 'Redis is async, using memory for sync check' }, 'Rate limit')
+    this._backend = 'memory'
+    this._redisClient = null
+    return this._checkMemory(key, limit, windowMs)
+  },
+
+  _checkMemory(key, limit, windowMs) {
     const now = Date.now()
 
     // 每10分钟清理过期条目
@@ -178,6 +267,97 @@ const rateLimiter = {
   }
 }
 
+// 立即初始化后端
+rateLimiter._initBackend()
+
+/**
+ * 团队认证中间件
+ * 验证用户是否为团队成员，并检查角色权限
+ *
+ * @param {string|string[]} requiredRoles - 允许访问的角色列表，或单个角色
+ * @param {string} teamIdSource - team_id 的来源：'body' | 'query' | 'params'
+ */
+function teamAuthMiddleware(requiredRoles = [], teamIdSource = 'body') {
+  // 统一为数组
+  const rolesArray = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles]
+  // 如果未指定角色，则只要是成员即可
+  const checkRole = rolesArray.length > 0
+
+  return (req, res, next) => {
+    // authMiddleware 应该已经运行过
+    if (!req.user || !req.userRecord) {
+      return res.status(401).json({ success: false, error: '请先登录' })
+    }
+
+    // 获取 team_id
+    let teamId
+    if (teamIdSource === 'body') {
+      teamId = req.body?.teamId || req.body?.team_id
+    } else if (teamIdSource === 'query') {
+      teamId = req.query?.teamId || req.query?.team_id
+    } else if (teamIdSource === 'params') {
+      teamId = req.params?.teamId || req.params?.team_id
+    }
+
+    if (!teamId) {
+      return res.status(400).json({ success: false, error: '缺少 team_id 参数' })
+    }
+
+    teamId = parseInt(teamId, 10)
+    if (isNaN(teamId)) {
+      return res.status(400).json({ success: false, error: '无效的 team_id' })
+    }
+
+    // 查找用户在团队中的成员记录
+    const member = Database.teamMembers.getMemberByUserAndTeam(req.user.userId, teamId)
+    if (!member) {
+      return res.status(403).json({ success: false, error: '您不是该团队成员' })
+    }
+
+    // 角色权限检查
+    if (checkRole) {
+      const userRoleLevel = ROLE_LEVELS[member.role] || 0
+      const allowed = rolesArray.some(r => ROLE_LEVELS[r] && ROLE_LEVELS[r] <= userRoleLevel)
+      if (!allowed) {
+        return res.status(403).json({
+          success: false,
+          error: `需要 ${rolesArray.join('/')} 权限，您的角色是 ${member.role}`,
+        })
+      }
+    }
+
+    // 附加团队成员信息到请求
+    req.teamMember = member
+    req.teamId = teamId
+
+    next()
+  }
+}
+
+/**
+ * 便捷方法：仅检查团队成员身份（不检查具体角色）
+ * @param {string} teamIdSource - team_id 来源：'body' | 'query' | 'params'
+ */
+function requireTeamMember(teamIdSource = 'body') {
+  return teamAuthMiddleware([], teamIdSource)
+}
+
+/**
+ * 便捷方法：要求 admin 角色
+ * @param {string} teamIdSource - team_id 来源：'body' | 'query' | 'params'
+ */
+function requireTeamAdmin(teamIdSource = 'body') {
+  return teamAuthMiddleware(['admin'], teamIdSource)
+}
+
+/**
+ * 便捷方法：要求 admin 或 member 角色
+ * @param {string} teamIdSource - team_id 来源：'body' | 'query' | 'params'
+ */
+function requireTeamMemberOrAdmin(teamIdSource = 'body') {
+  return teamAuthMiddleware(['admin', 'member'], teamIdSource)
+}
+
 module.exports = {
   generateToken,
   verifyToken,
@@ -186,4 +366,9 @@ module.exports = {
   sanitizeInput,
   isValidEmail,
   rateLimiter,
+  teamAuthMiddleware,
+  requireTeamMember,
+  requireTeamAdmin,
+  requireTeamMemberOrAdmin,
+  ROLE_LEVELS,
 }

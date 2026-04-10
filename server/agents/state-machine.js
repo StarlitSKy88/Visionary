@@ -6,6 +6,7 @@
 
 const AIService = require('../lib/ai-service')
 const Database = require('../db')
+const { safeLog } = require('../lib/logger')
 
 // 状态定义
 const STATES = {
@@ -174,12 +175,12 @@ class GenerationStateMachine {
         const validation = validateResult(state, result)
         if (!validation.valid) {
           if (retryCount < this.maxRetries) {
-            console.warn(`⚠️ 验证失败 (${state}): ${validation.errors.join(', ')}，重试中...`)
+            safeLog({ state, errors: validation.errors, type: 'validation_failed_retry' }, `⚠️ 验证失败，重试中...`)
             retryCount++
             continue
           }
           // 最后一次重试仍失败，继续但记录警告
-          console.warn(`⚠️ 验证警告 (${state}): ${validation.errors.join(', ')}`)
+          safeLog({ state, errors: validation.errors, type: 'validation_warning' }, `⚠️ 验证警告`)
         }
 
         this.context.rounds.push({ agent: state, result })
@@ -190,13 +191,13 @@ class GenerationStateMachine {
         retryCount++
 
         if (category === ERROR_CATEGORIES.PROVIDER && retryCount <= this.maxRetries) {
-          console.warn(`⚠️ Provider错误 (${state})，第${retryCount}次重试...`, error.message)
+          safeLog({ state, retryCount, error: error.message, type: 'provider_error_retry' }, `⚠️ Provider错误，第${retryCount}次重试...`)
           await new Promise(r => setTimeout(r, 1000 * retryCount))
           continue
         }
 
         if (category === ERROR_CATEGORIES.VALIDATION && retryCount <= this.maxRetries) {
-          console.warn(`⚠️ 验证错误 (${state})，第${retryCount}次重试...`)
+          safeLog({ state, retryCount, type: 'validation_error_retry' }, `⚠️ 验证错误，第${retryCount}次重试...`)
           continue
         }
 

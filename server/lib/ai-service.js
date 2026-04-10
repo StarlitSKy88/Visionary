@@ -4,6 +4,7 @@
  */
 
 const router = require('./providers/router')
+const { safeLog } = require('./logger')
 
 // ===== 向后兼容：保留原有的 chat / chatJSON 接口 =====
 
@@ -37,7 +38,7 @@ ${JSON.stringify(schema, null, 2)}
     if (jsonMatch) return JSON.parse(jsonMatch[0])
     return JSON.parse(response)
   } catch (e) {
-    console.error('JSON解析失败:', response)
+    safeLog({ type: 'ai_json_parse_error', response }, '❌ JSON解析失败')
     throw new Error('AI返回格式错误')
   }
 }

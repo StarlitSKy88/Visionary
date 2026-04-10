@@ -5,6 +5,7 @@ const Database = require('../db')
 const { formatUserResponse } = require('../db')
 const { generateToken, authMiddleware, sanitizeInput, isValidEmail, rateLimiter } = require('../lib/auth')
 const { sendVerificationCode } = require('../lib/email-service')
+const { safeLog } = require('../lib/logger')
 
 router.post('/send-email-code', async (req, res) => {
   const { email } = req.body
@@ -93,17 +94,17 @@ router.post('/register', (req, res) => {
         const newProgress = (inviter.invite_progress || 0) + 1
         Database.updateInviteProgress(inviter.id, newProgress)
         if (newProgress >= 3 && inviter.refunded !== 1) {
-          console.log(`🎉 邀请达标，可退款: ${inviter.email}`)
+          safeLog({ email: inviter.email, type: 'invite_refund_eligible' }, '🎉 邀请达标，可退款')
         }
       }
     }
 
     const token = generateToken(user.id, sanitizedEmail)
-    console.log(`✅ 新用户注册: ${sanitizedEmail} | 邀请码: ${inviteCode}`)
+    safeLog({ email: sanitizedEmail, inviteCode, type: 'user_registered' }, '✅ 新用户注册')
 
     res.json({ success: true, token, user: formatUserResponse(user) })
   } catch (error) {
-    console.error('注册失败:', error)
+    safeLog({ error: error.message, type: 'register_failed' }, '❌ 注册失败')
     res.status(500).json({ success: false, error: error.message || '注册失败' })
   }
 })

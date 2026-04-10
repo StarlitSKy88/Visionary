@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const Database = require('../db')
 const { sanitizeInput } = require('../lib/auth')
+const { safeLog } = require('../lib/logger')
 
 const ADMIN_KEY = process.env.ADMIN_KEY || 'admin123'
 
@@ -30,7 +31,7 @@ router.get('/stats', adminAuth, (req, res) => {
     }
     res.json({ success: true, stats })
   } catch (error) {
-    console.error('获取统计失败:', error)
+    safeLog({ error: error.message, type: 'admin_stats_error' }, '❌ 获取统计失败')
     res.status(500).json({ success: false, error: '获取统计数据失败' })
   }
 })
@@ -50,7 +51,7 @@ router.get('/users', adminAuth, (req, res) => {
       })),
     })
   } catch (error) {
-    console.error('获取用户列表失败:', error)
+    safeLog({ error: error.message, type: 'admin_users_error' }, '❌ 获取用户列表失败')
     res.status(500).json({ success: false, error: '获取失败' })
   }
 })
@@ -60,7 +61,7 @@ router.get('/orders', adminAuth, (req, res) => {
     const orders = Database.getAllOrdersWithUser(100)
     res.json({ success: true, orders })
   } catch (error) {
-    console.error('获取订单列表失败:', error)
+    safeLog({ error: error.message, type: 'admin_orders_error' }, '❌ 获取订单列表失败')
     res.status(500).json({ success: false, error: '获取失败' })
   }
 })
@@ -70,7 +71,7 @@ router.get('/tickets', adminAuth, (req, res) => {
     const tickets = Database.getRecentTickets(100)
     res.json({ success: true, tickets })
   } catch (error) {
-    console.error('获取工单列表失败:', error)
+    safeLog({ error: error.message, type: 'admin_tickets_error' }, '❌ 获取工单列表失败')
     res.status(500).json({ success: false, error: '获取失败' })
   }
 })
@@ -83,7 +84,7 @@ router.post('/tickets/:id', adminAuth, (req, res) => {
     Database.updateTicketStatus(req.params.id, sanitizeInput(status))
     res.json({ success: true })
   } catch (error) {
-    console.error('处理工单失败:', error)
+    safeLog({ error: error.message, type: 'admin_ticket_update_error' }, '❌ 处理工单失败')
     res.status(500).json({ success: false, error: '处理失败' })
   }
 })
@@ -93,7 +94,7 @@ router.get('/knowledge', adminAuth, (req, res) => {
     const knowledge = Database.getRecentKnowledge(100)
     res.json({ success: true, knowledge })
   } catch (error) {
-    console.error('获取知识库失败:', error)
+    safeLog({ error: error.message, type: 'admin_knowledge_error' }, '❌ 获取知识库失败')
     res.status(500).json({ success: false, error: '获取失败' })
   }
 })
@@ -106,7 +107,7 @@ router.post('/knowledge', adminAuth, (req, res) => {
     Database.addKnowledge(sanitizeInput(industry), sanitizeInput(keyword || ''), sanitizeInput(content), sanitizeInput(source || ''))
     res.json({ success: true })
   } catch (error) {
-    console.error('添加知识失败:', error)
+    safeLog({ error: error.message, type: 'admin_knowledge_add_error' }, '❌ 添加知识失败')
     res.status(500).json({ success: false, error: '添加失败' })
   }
 })
@@ -129,7 +130,7 @@ router.get('/token-stats', adminAuth, (req, res) => {
       byTask: byTask || [],
     })
   } catch (error) {
-    console.error('获取Token统计失败:', error)
+    safeLog({ error: error.message, type: 'admin_token_stats_error' }, '❌ 获取Token统计失败')
     res.status(500).json({ success: false, error: '获取失败' })
   }
 })

@@ -4,6 +4,7 @@
  */
 
 const BaseProvider = require('./base-provider')
+const { safeLog } = require('../../lib/logger')
 
 const MODELS = {
   nemotron: 'nvidia/nemotron-3-super-120b-a12b:free',
@@ -60,7 +61,7 @@ class OpenRouterProvider extends BaseProvider {
 
         if (!response.ok) {
           const errorText = await response.text()
-          console.error(`OpenRouter Error (${currentModel}):`, response.status, errorText)
+          safeLog({ model: currentModel, status: response.status, error: errorText, type: 'openrouter_error' }, `❌ OpenRouter Error (${currentModel})`)
 
           if (response.status === 429) {
             await new Promise(r => setTimeout(r, 2000 * (attempt + 1)))
@@ -85,7 +86,7 @@ class OpenRouterProvider extends BaseProvider {
         }
       } catch (error) {
         if (attempt === retries) throw error
-        console.warn(`OpenRouter 第${attempt + 1}次重试...`, error.message)
+        safeLog({ attempt: attempt + 1, model: currentModel, error: error.message, type: 'openrouter_retry' }, `⚠️ OpenRouter 第${attempt + 1}次重试...`)
         await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
       }
     }

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/misc'
 import { useToast } from '@/components/ui/toast'
-import { ArrowRight, Bot, Download, Gift, User } from 'lucide-react'
+import { ArrowRight, Bot, Download, Gift, User, Users } from 'lucide-react'
 
 interface User {
   id: number
@@ -224,6 +224,21 @@ export default function DashboardPage() {
               </div>
             </div>
           </Card>
+
+          <Link href="/team">
+            <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[rgba(235,203,139,0.1)] flex items-center justify-center">
+                  <Users className="w-6 h-6 text-[#ebcb8b]" />
+                </div>
+                <div>
+                  <div className="font-semibold text-[#eceff4]">团队管理</div>
+                  <div className="text-sm text-[#81a1c1]">管理团队成员和请假</div>
+                </div>
+                <ArrowRight className="w-5 h-5 text-[#81a1c1] ml-auto" />
+              </div>
+            </Card>
+          </Link>
         </div>
 
         {/* Agent列表 */}

@@ -20,6 +20,7 @@ interface Stats {
   todayTokens: number
   totalTokens: number
   avgLatency: number
+  totalCalls?: number
 }
 
 interface User {
@@ -389,7 +390,7 @@ export default function AdminPage() {
                   </div>
                   <div>
                     <p className="text-sm text-[#81a1c1]">Total Calls</p>
-                    <p className="text-2xl font-bold">{tokenStats.stats.totalCalls.toLocaleString()}</p>
+                    <p className="text-2xl font-bold">{tokenStats.stats.totalCalls?.toLocaleString() || 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-[#81a1c1]">{t.admin.avgLatency}</p>

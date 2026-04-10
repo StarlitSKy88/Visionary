@@ -4,6 +4,8 @@
  * OPC 原则：零额外依赖，使用 Node.js 原生能力 + fetch
  */
 
+const { safeLog } = require('./logger')
+
 // ===== Resend API（推荐，免费额度 100封/天）=====
 async function sendViaResend(to, subject, html) {
   const RESEND_API_KEY = process.env.RESEND_API_KEY
@@ -91,25 +93,25 @@ async function sendVerificationCode(email, code) {
   try {
     const resendResult = await sendViaResend(email, subject, html)
     if (resendResult) {
-      console.log(`📧 验证码邮件已发送 (Resend): ${email}`)
+      safeLog({ email, type: 'email_sent_resend' }, '📧 验证码邮件已发送 (Resend)')
       return { sent: true, method: 'resend' }
     }
   } catch (e) {
-    console.warn('Resend 发送失败:', e.message)
+    safeLog({ email, error: e.message }, '⚠️ Resend 发送失败')
   }
 
   try {
     const smtpResult = await sendViaSMTP(email, subject, html)
     if (smtpResult) {
-      console.log(`📧 验证码邮件已发送 (SMTP): ${email}`)
+      safeLog({ email, type: 'email_sent_smtp' }, '📧 验证码邮件已发送 (SMTP)')
       return { sent: true, method: 'smtp' }
     }
   } catch (e) {
-    console.warn('SMTP 发送失败:', e.message)
+    safeLog({ email, error: e.message }, '⚠️ SMTP 发送失败')
   }
 
-  // 降级：输出到 console（开发模式）
-  console.log(`\n📧 验证码 → ${email}: ${code} (5分钟有效) [未配置邮件服务，使用console输出]\n`)
+  // 降级：输出到 console（开发模式）- 已脱敏
+  safeLog({ email, type: 'verification_code_fallback', validMinutes: 5 }, '📧 验证码降级输出（生产请配置 Resend）')
   return { sent: false, method: 'console', code }
 }
 

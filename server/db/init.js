@@ -1,6 +1,7 @@
 const initSqlJs = require('sql.js')
 const path = require('path')
 const fs = require('fs')
+const { safeLog } = require('../lib/logger')
 
 const dbPath = path.join(__dirname, '../../data/database.sqlite')
 let db
@@ -131,7 +132,7 @@ async function initDatabase() {
   `)
 
   saveDatabase()
-  console.log('✅ Database initialized at', dbPath)
+  safeLog({ dbPath, type: 'db_init' }, '✅ Database initialized')
 }
 
 function saveDatabase() {

@@ -6,14 +6,14 @@
 
 const { GenerationStateMachine, setSession, getSession, removeSession } = require('./state-machine')
 const AIService = require('../lib/ai-service')
+const { safeLog } = require('../lib/logger')
 
 class AgentEngine {
   /**
    * 主生成流程（使用状态机）
    */
   async generate(input, userId) {
-    console.log(`\n🚀 启动Agent生成引擎 (StateMachine)...`)
-    console.log(`📝 输入: ${input.substring(0, 50)}...\n`)
+    safeLog({ input: input.substring(0, 50), type: 'engine_start' }, `🚀 启动Agent生成引擎`)
 
     const machine = new GenerationStateMachine(input, userId)
     setSession(machine.sessionId, machine)
