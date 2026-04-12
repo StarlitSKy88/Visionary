@@ -35,7 +35,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className={cn(
               // Base styles - Dark theme
               'flex w-full rounded-xl border border-[#333333] bg-[#262626] px-4 py-3.5 text-base text-white',
-              'placeholder:text-[#737373]',
+              'placeholder:text-[#525252]',
               'focus:outline-none focus:ring-2 focus:ring-[#3ec489] focus:border-transparent',
               'focus:shadow-[0_0_0_3px_rgba(62,196,137,0.15)]',
               'disabled:cursor-not-allowed disabled:bg-[#1f1f1f] disabled:text-[#525252]',
@@ -89,7 +89,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           className={cn(
             // Base styles - Dark theme
             'flex min-h-[120px] w-full rounded-xl border border-[#333333] bg-[#262626] px-4 py-3.5 text-base text-white',
-            'placeholder:text-[#737373]',
+            'placeholder:text-[#525252]',
             'focus:outline-none focus:ring-2 focus:ring-[#3ec489] focus:border-transparent',
             'focus:shadow-[0_0_0_3px_rgba(62,196,137,0.15)]',
             'disabled:cursor-not-allowed disabled:bg-[#1f1f1f] disabled:text-[#525252]',
