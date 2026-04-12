@@ -15,12 +15,16 @@ export function Badge({ className, variant = 'default', size = 'md', children, .
         {
           'bg-[#262626] text-[#a3a3a3] border border-[#333333]':
             variant === 'default',
-          'bg-[#3ec489]/15 text-[#3ec489]': variant === 'primary',
+          'bg-[#3ec489]/15 text-[#3ec489] border border-[#3ec489]/30':
+            variant === 'primary',
           'bg-[#262626] text-[#737373] border border-[#333333]':
             variant === 'secondary',
-          'bg-[#3ec489]/15 text-[#3ec489]': variant === 'success',
-          'bg-[#f5b100]/15 text-[#f5b100]': variant === 'warning',
-          'bg-[#f25d44]/15 text-[#f25d44]': variant === 'error',
+          'bg-[#2d7a4f]/15 text-[#3ec489] border border-[#3ec489]/30':
+            variant === 'success',
+          'bg-[#f5b100]/15 text-[#f5b100] border border-[#f5b100]/30':
+            variant === 'warning',
+          'bg-[#f25d44]/15 text-[#f25d44] border border-[#f25d44]/30':
+            variant === 'error',
           'bg-[#3ec489] text-white shadow-lg shadow-[#3ec489]/20': variant === 'solid',
           'border border-[#333333] text-[#a3a3a3]':
             variant === 'outline',
@@ -64,8 +68,7 @@ export function Progress({
     >
       <div
         className={cn('h-full transition-all duration-500 ease-out rounded-full', {
-          'bg-[#3ec489]': variant === 'default',
-          'bg-[#3ec489]': variant === 'success',
+          'bg-[#3ec489]': variant === 'default' || variant === 'success',
           'bg-[#f5b100]': variant === 'warning',
           'bg-[#f25d44]': variant === 'error',
           'h-1': size === 'sm',
