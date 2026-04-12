@@ -1,0 +1,590 @@
+// Prisma schema for AI Employee Platform
+// AI 员工平台 - 真正的 AI 员工，能记忆、会学习、能操作工具
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// 用户与画像
+// ============================================
+
+model User {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  phone         String?
+  companyName   String?
+  role          String        @default("user") // user/admin
+  isActive      Boolean       @default(true)
+  lastLoginAt   DateTime?
+  settings      Json          @default("{}")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // 关系
+  profile       UserProfile?
+  agents        Agent[]
+  sessions      Session[]
+  messages      Message[]
+  shortMemories ShortTermMemory[]
+  longMemories  LongTermMemory[]
+  toolExecutions ToolExecution[]
+  emails        Email[]
+  files         File[]
+  approvals     Approval[]
+  learningRecords LearningRecord[]
+  emailCodes    EmailCode[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 基础信息
+  industry          String?  // 行业：餐饮/制造/零售/服务
+  industryDetail    String?  // 行业细分
+  companyScale      String?  // 公司规模：个体户/小微/中型/大型
+  department        String?  // 部门
+  position          String?  // 岗位：老板/经理/主管
+
+  // 痛点与需求
+  painPoints  Json    @default("[]") // ["琐事太多", "审批流程慢"]
+  goals       Json    @default("[]") // ["腾出时间做决策", "减少人工错误"]
+  challenges  Json    @default("[]") // ["人员流动大", "数据分散"]
+
+  // 偏好设置
+  communicationStyle      String  @default("friendly") // formal/casual/friendly
+  preferredResponseLength String  @default("medium")   // short/medium/long
+  language               String  @default("zh-CN")
+  timezone               String  @default("Asia/Shanghai")
+
+  // 头像与展示
+  avatarUrl     String?
+  displayName   String?
+
+  // AI员工关系
+  primaryAgentId String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
+// ============================================
+// AI 员工
+// ============================================
+
+model Agent {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 基础信息
+  name        String
+  description String?
+  avatarUrl   String?
+
+  // Agent 类型与状态
+  agentType   String   @default("general") // general/generation/learning/custom
+  status      String   @default("active")  // active/training/inactive
+
+  // 配置
+  config      Json     @default("{}")
+  systemPrompt String?
+  skills      Json     @default("[]")
+  constraints Json     @default("[]")
+
+  // 能力标志
+  capabilities Json   @default("[]")  // 可执行的工具能力列表
+  tools        Json   @default("[]")  // 启用的工具列表
+
+  // 记忆配置
+  memoryConfig    Json   @default("{\"shortTerm\": true, \"longTerm\": true}")
+  // MEMORY.md 内容 (~2200字符)
+  memoryContent   String @default("")
+  // USER.md 内容 (~1375字符)
+  userProfileContent String @default("")
+
+  // 学习配置
+  learningConfig Json @default("{\"feedbackLearning\": true, \"passiveLearning\": true}")
+
+  // 评分与版本
+  score      Int?
+  version    Int      @default(1)
+  parentAgentId String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // 关系
+  sessions   Session[]
+  messages   Message[]
+  shortMemories ShortTermMemory[]
+  longMemories  LongTermMemory[]
+  toolExecutions ToolExecution[]
+  emails        Email[]
+  files         File[]
+  approvals     Approval[]
+
+  @@map("agents")
+}
+
+// ============================================
+// 会话
+// ============================================
+
+model Session {
+  id           String   @id @default(uuid())
+  agentId      String
+  agent        Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 会话元数据
+  sessionType  String   @default("chat") // chat/task/approval/file_operation
+  title        String?
+  status       String   @default("active") // active/paused/completed/archived
+
+  // 上下文窗口
+  contextWindow Int      @default(10)
+  maxContextMessages Int @default(50)
+
+  // 父会话（用于分支）
+  parentSessionId String?
+
+  // 统计
+  messageCount  Int      @default(0)
+  totalTokens   Int      @default(0)
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  endedAt      DateTime?
+
+  // 关系
+  messages     Message[]
+
+  @@map("sessions")
+}
+
+// ============================================
+// 消息
+// ============================================
+
+model Message {
+  id         String   @id @default(uuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentId    String
+  agent      Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  // 消息内容
+  role        String   // user/assistant/system/tool/reflection
+  content     String
+  contentType String   @default("text") // text/image/audio/file/markdown
+
+  // 附件
+  attachments Json     @default("[]") // [{type, url, name, size}]
+
+  // 执行信息
+  executionInfo Json?   // {tool_name, args, result, duration_ms, tokens_used}
+
+  // 思维过程
+  thinkingProcess Json?  // [{step, thought, decision}]
+
+  // 反馈
+  feedback  Json?  // {type: 'thumbs_up'/'thumbs_down'/'correction', content}
+
+  // 引用记忆
+  memoryReferences Json @default("[]")
+
+  createdAt  DateTime  @default(now())
+
+  @@map("messages")
+}
+
+// ============================================
+// 记忆系统 (参考 Hermes Agent 的 bounded curated memory)
+// ============================================
+
+model ShortTermMemory {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentId    String
+  agent      Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  sessionId  String?
+
+  // 记忆内容
+  content         String
+  contentSummary  String?  // 自动生成的摘要
+
+  // 记忆类型
+  memoryType String @default("conversation") // conversation/fact/preference/rule
+
+  // 重要性
+  importance Int @default(5) // 1-10
+
+  // 关联实体
+  entities Json @default("[]") // 提取的实体
+  topics   Json @default("[]") // 主题标签
+
+  // 访问统计
+  accessCount     Int @default(0)
+  lastAccessedAt  DateTime?
+
+  // 过期策略
+  expiresAt  DateTime?
+  isPinned   Boolean @default(false)
+
+  createdAt  DateTime @default(now())
+
+  @@map("short_term_memories")
+}
+
+model LongTermMemory {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentId    String?
+  agent      Agent?   @relation(fields: [agentId], references: [id], onDelete: SetNull)
+
+  // 记忆内容
+  content        String
+  contentSummary String?
+
+  // 记忆类型
+  memoryType String @default("fact") // fact/preference/rule/habit/feedback/knowledge
+
+  // 分类
+  category  String?   // 自定义分类
+  tags      Json      @default("[]")
+
+  // 来源
+  source            String?   // conversation/feedback/learning/manual
+  sourceMessageId   String?
+
+  // 置信度与重要性
+  confidence  Int @default(80)  // 0-100
+  importance  Int @default(5)  // 1-10
+
+  // 使用统计
+  useCount    Int @default(0)
+  lastUsedAt  DateTime?
+
+  // 状态
+  isActive   Boolean @default(true)
+  isVerified Boolean @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("long_term_memories")
+}
+
+// ============================================
+// 情景记忆 (Episodic Memory) - 自我改进层
+// ============================================
+
+model EpisodicMemory {
+  id         String   @id @default(uuid())
+  userId     String
+  agentId    String?
+
+  // 任务信息
+  taskDescription String
+  taskCategory    String?  // email/file/approval/spreadsheet/general
+
+  // 执行过程
+  approach       String   // 采取的方法
+  result         String   // success/failed/partial
+  resultDetail   String?  // 详细结果描述
+
+  // 反思
+  reflection     String?  // 事后反思
+  lessonsLearned String?  // 学到的教训
+
+  // 元数据
+  durationMs     Int?
+  tokensUsed     Int?
+  toolsUsed      Json @default("[]")
+
+  createdAt      DateTime @default(now())
+
+  @@map("episodic_memories")
+}
+
+// ============================================
+// 工具执行日志
+// ============================================
+
+model ToolExecution {
+  id         String   @id @default(uuid())
+  sessionId  String?
+  messageId  String?
+  agentId    String
+  agent      Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 工具信息
+  toolName      String
+  toolCategory  String?  // email/file/approval/spreadsheet/websearch
+
+  // 调用参数
+  arguments        Json?
+  argumentsSummary String? // 参数摘要（脱敏）
+
+  // 执行结果
+  result        Json?
+  resultSummary String?
+  errorMessage  String?
+
+  // 执行状态
+  status        String @default("success") // success/failed/partial/timeout
+
+  // 性能
+  durationMs    Int?
+  tokensUsed    Int?
+
+  // 费用
+  cost          Float?
+
+  createdAt     DateTime @default(now())
+
+  @@map("tool_executions")
+}
+
+// ============================================
+// 邮件
+// ============================================
+
+model Email {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentId    String?
+  agent      Agent?   @relation(fields: [agentId], references: [id], onDelete: SetNull)
+
+  // 邮件标识
+  emailMessageId   String?
+  threadId         String?
+
+  // 收发人
+  fromAddress String
+  fromName    String?
+  toAddresses Json @default("[]") // [{address, name}]
+  ccAddresses Json @default("[]")
+  bccAddresses Json @default("[]")
+
+  // 邮件内容
+  subject    String?
+  bodyText  String?
+  bodyHtml  String?
+
+  // 附件
+  attachments Json @default("[]") // [{filename, url, size, mime_type}]
+
+  // 邮件属性
+  isRead     Boolean @default(false)
+  isStarred  Boolean @default(false)
+  isDraft    Boolean @default(false)
+  folder     String  @default("inbox") // inbox/sent/draft/trash
+  categories Json    @default("[]")
+  importance String  @default("normal") // low/normal/high
+
+  // 同步信息
+  provider          String? // gmail/outlook/imap
+  providerMessageId String?
+  syncedAt          DateTime?
+
+  createdAt  DateTime @default(now())
+  receivedAt DateTime?
+  sentAt     DateTime?
+
+  @@map("emails")
+}
+
+// ============================================
+// 文件
+// ============================================
+
+model File {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentId    String?
+  agent      Agent?   @relation(fields: [agentId], references: [id], onDelete: SetNull)
+
+  // 文件信息
+  originalName  String
+  storageKey    String   // 存储路径
+  mimeType      String?
+  sizeBytes    BigInt?
+
+  // 文件类型
+  fileCategory  String?  // spreadsheet/document/image/audio/video/other
+  fileExtension String?
+
+  // 表格文件特有
+  spreadsheetInfo Json? // {sheet_count, headers, row_count}
+
+  // 预览
+  previewText String?
+  thumbnailUrl String?
+
+  // 存储信息
+  storageProvider  String @default("local") // local/s3/r2
+  storageBucket    String?
+
+  // 访问控制
+  isPublic    Boolean @default(false)
+  accessLevel String  @default("private") // private/team/public
+
+  // 分享
+  shareToken  String?
+  expiresAt   DateTime?
+
+  // 统计
+  downloadCount   Int @default(0)
+  lastAccessedAt  DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("files")
+}
+
+// ============================================
+// 审批
+// ============================================
+
+model Approval {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentId    String?
+  agent      Agent?   @relation(fields: [agentId], references: [id], onDelete: SetNull)
+
+  // 审批类型
+  approvalType String
+  title        String
+  description String?
+
+  // 申请人
+  requesterId    String
+  requesterNotes String?
+
+  // 审批流程
+  flowConfig Json?
+
+  // 当前状态
+  status String @default("pending") // draft/pending/approved/rejected/withdrawn
+
+  // 审批历史
+  approvalHistory Json @default("[]") // [{approver_id, status, comment, timestamp}]
+
+  // 金额
+  amount   Float?
+  currency String @default("CNY")
+
+  // 附件
+  attachments Json @default("[]")
+
+  // 到期
+  expiresAt DateTime?
+
+  // 决策
+  decidedAt    DateTime?
+  decisionNote String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("approvals")
+}
+
+// ============================================
+// 学习记录
+// ============================================
+
+model LearningRecord {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentId    String?
+
+  // 学习类型
+  learningType String // feedback/correction/preference/pattern/manual
+
+  // 内容
+  originalContent String?  // 原始输入
+  learnedContent String   // 学到的内容
+
+  // 分类
+  category   String?  // 规则/偏好/知识/习惯
+  confidence Int @default(50) // 学习置信度
+
+  // 来源
+  sourceMessageId String?
+  sourceType      String? // explicit_feedback/implicit_feedback/observation
+
+  // 影响范围
+  affectedSessions Json @default("[]")
+  affectedTools    Json @default("[]")
+
+  // 验证状态
+  isApplied     Boolean @default(false)
+  appliedAt     DateTime?
+  applicationNotes String?
+
+  // 效果追踪
+  effectivenessScore Int?
+  feedbackCount       Int @default(0)
+
+  createdAt   DateTime @default(now())
+
+  @@map("learning_records")
+}
+
+// ============================================
+// 验证码（保留现有功能）
+// ============================================
+
+model EmailCode {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  expiresAt BigInt
+  used      Int      @default(0)
+  createdAt DateTime @default(now())
+
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("email_codes")
+}
+
+// ============================================
+// 邀请关系（保留现有功能）
+// ============================================
+
+model InviteCode {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  createdBy     String
+  usedBy        String?
+  usedAt        DateTime?
+  createdAt     DateTime @default(now())
+
+  @@map("invite_codes")
+}

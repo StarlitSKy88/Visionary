@@ -79,6 +79,7 @@ module.exports = {
   // 聊天
   saveChatMessage: (agentId, userId, role, content) => agents.saveChatMessage(agentId, userId, role, content),
   getChatMessages: (agentId, userId, limit) => agents.getChatMessages(agentId, userId, limit),
+  saveFeedback: (agentId, userId, messageContent, feedbackType) => agents.saveFeedback(agentId, userId, messageContent, feedbackType),
 
   // 订单
   createOrder: (data) => orders.createOrder(data),

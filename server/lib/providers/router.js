@@ -7,71 +7,80 @@
 const { OpenRouterProvider, MODELS: OR_MODELS } = require('./openrouter-provider')
 const { AnthropicProvider, MODELS: ANTHROPIC_MODELS } = require('./anthropic-provider')
 const { DeepSeekProvider, MODELS: DEEPSEEK_MODELS } = require('./deepseek-provider')
+const { MiniMaxProvider, MODELS: MINIMAX_MODELS } = require('./minimax-provider')
 const { safeLog } = require('../../lib/logger')
 
 // 按任务类型的模型路由策略
 const TASK_ROUTES = {
   // 需求理解 - 需要强推理能力
   'understand-demand': {
-    provider: 'anthropic',
-    model: ANTHROPIC_MODELS.sonnet,
-    fallback: { provider: 'openrouter', model: OR_MODELS.nemotron },
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
     temperature: 0.3,
     maxTokens: 1500,
   },
   // 行业情报 - 需要广泛知识
   'gather-intel': {
-    provider: 'openrouter',
-    model: OR_MODELS.nemotron,
-    fallback: { provider: 'deepseek', model: DEEPSEEK_MODELS.chat },
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    fallback: { provider: 'openrouter', model: OR_MODELS.nemotron },
     temperature: 0.5,
     maxTokens: 1500,
   },
   // 根因分析 - 需要深度推理
   'root-cause': {
-    provider: 'anthropic',
-    model: ANTHROPIC_MODELS.sonnet,
-    fallback: { provider: 'deepseek', model: DEEPSEEK_MODELS.reasoner },
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
     temperature: 0.3,
     maxTokens: 1500,
   },
   // 方案设计 - 需要创造力 + 推理
   'design-solution': {
-    provider: 'anthropic',
-    model: ANTHROPIC_MODELS.sonnet,
-    fallback: { provider: 'openrouter', model: OR_MODELS.nemotron },
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
     temperature: 0.5,
     maxTokens: 2000,
   },
   // 辩论优化 - 需要批判性思维
   'debate-optimize': {
-    provider: 'anthropic',
-    model: ANTHROPIC_MODELS.sonnet,
-    fallback: { provider: 'deepseek', model: DEEPSEEK_MODELS.chat },
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
     temperature: 0.4,
     maxTokens: 1500,
   },
   // 评分 - 需要精准评估
   'evaluate-score': {
-    provider: 'anthropic',
-    model: ANTHROPIC_MODELS.sonnet,
-    fallback: { provider: 'openrouter', model: OR_MODELS.nemotron },
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
     temperature: 0.2,
     maxTokens: 800,
   },
   // 聊天 - 快速响应
   'chat': {
-    provider: 'openrouter',
-    model: OR_MODELS.gemini,
-    fallback: { provider: 'deepseek', model: DEEPSEEK_MODELS.chat },
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    fallback: { provider: 'openrouter', model: OR_MODELS.gemini },
     temperature: 0.7,
     maxTokens: 1000,
   },
+  // 完成补全
+  'complete': {
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    fallback: { provider: 'openrouter', model: OR_MODELS.gemini },
+    temperature: 0.7,
+    maxTokens: 2000,
+  },
   // 默认
   'default': {
-    provider: 'openrouter',
-    model: OR_MODELS.nemotron,
-    fallback: { provider: 'openrouter', model: OR_MODELS.gemini },
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    fallback: { provider: 'openrouter', model: OR_MODELS.nemotron },
     temperature: 0.7,
     maxTokens: 2000,
   },
@@ -180,6 +189,12 @@ class ProviderRouter {
     if (process.env.DEEPSEEK_API_KEY) {
       this.providers.deepseek = new DeepSeekProvider({})
       safeLog({ provider: 'deepseek', type: 'provider_enabled' }, '✅ DeepSeek provider 已启用')
+    }
+
+    // 如果配置了 MiniMax Key 则启用
+    if (process.env.MINIMAX_API_KEY) {
+      this.providers.minimax = new MiniMaxProvider({})
+      safeLog({ provider: 'minimax', type: 'provider_enabled' }, '✅ MiniMax provider 已启用')
     }
   }
 

@@ -57,6 +57,23 @@ function runMigrations(store) {
         CREATE INDEX IF NOT EXISTS idx_team_members_user_team ON team_members(team_id, user_id);
       `
     },
+    {
+      name: '004_add_chat_feedbacks',
+      sql: `
+        CREATE TABLE IF NOT EXISTS chat_feedbacks (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          agent_id INTEGER NOT NULL,
+          user_id INTEGER NOT NULL,
+          message_content TEXT NOT NULL,
+          feedback_type TEXT NOT NULL CHECK(feedback_type IN ('thumbs_up', 'thumbs_down')),
+          created_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (agent_id) REFERENCES agents(id),
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_chat_feedbacks_agent ON chat_feedbacks(agent_id);
+        CREATE INDEX IF NOT EXISTS idx_chat_feedbacks_user ON chat_feedbacks(user_id);
+      `
+    },
   ]
 
   let appliedCount = 0

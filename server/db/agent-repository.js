@@ -68,6 +68,16 @@ class AgentRepository extends BaseRepository {
       [parseInt(agentId), userId, Math.min(limit, 200)]
     )
   }
+
+  // ===== 反馈 =====
+
+  saveFeedback(agentId, userId, messageContent, feedbackType) {
+    this._run(
+      'INSERT INTO chat_feedbacks (agent_id, user_id, message_content, feedback_type) VALUES (?, ?, ?, ?)',
+      [parseInt(agentId), userId, messageContent, feedbackType]
+    )
+    this.store.debouncedSave()
+  }
 }
 
 module.exports = AgentRepository

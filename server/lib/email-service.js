@@ -7,7 +7,7 @@
 const { safeLog } = require('./logger')
 
 // ===== Resend API（推荐，免费额度 100封/天）=====
-async function sendViaResend(to, subject, html) {
+async function sendViaResend(to, subject, html, fromName) {
   const RESEND_API_KEY = process.env.RESEND_API_KEY
   if (!RESEND_API_KEY) return null
 
@@ -18,8 +18,8 @@ async function sendViaResend(to, subject, html) {
       'Authorization': `Bearer ${RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM || 'AI经营助手 <noreply@yourdomain.com>',
-      to: [to],
+      from: fromName || process.env.EMAIL_FROM || 'AI经营助手 <noreply@yourdomain.com>',
+      to: Array.isArray(to) ? to : [to],
       subject,
       html,
     }),
@@ -35,7 +35,7 @@ async function sendViaResend(to, subject, html) {
 
 // ===== SMTP（备选方案，使用 nodemailer 风格的 net 连接）=====
 // 如果没有 Resend Key 且配置了 SMTP，使用 simple SMTP
-async function sendViaSMTP(to, subject, html) {
+async function sendViaSMTP(to, subject, html, fromName) {
   const SMTP_HOST = process.env.SMTP_HOST
   const SMTP_PORT = process.env.SMTP_PORT
   const SMTP_USER = process.env.SMTP_USER
@@ -54,8 +54,8 @@ async function sendViaSMTP(to, subject, html) {
     })
 
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || SMTP_USER,
-      to,
+      from: fromName || process.env.EMAIL_FROM || SMTP_USER,
+      to: Array.isArray(to) ? to.join(', ') : to,
       subject,
       html,
     })
@@ -65,6 +65,42 @@ async function sendViaSMTP(to, subject, html) {
     // nodemailer 未安装
     return null
   }
+}
+
+/**
+ * 通用邮件发送函数
+ * 尝试 Resend → SMTP → 降级
+ * @param {string|string[]} to - 收件人
+ * @param {string} subject - 主题
+ * @param {string} html - HTML内容
+ * @param {string} fromName - 发件人名称（可选）
+ */
+async function sendEmail(to, subject, html, fromName) {
+  // 尝试 Resend
+  try {
+    const resendResult = await sendViaResend(to, subject, html, fromName)
+    if (resendResult) {
+      safeLog({ to, subject, type: 'email_sent_resend' }, '📧 邮件已发送 (Resend)')
+      return { sent: true, method: 'resend', result: resendResult }
+    }
+  } catch (e) {
+    safeLog({ to, subject, error: e.message }, '⚠️ Resend 发送失败')
+  }
+
+  // 尝试 SMTP
+  try {
+    const smtpResult = await sendViaSMTP(to, subject, html, fromName)
+    if (smtpResult) {
+      safeLog({ to, subject, type: 'email_sent_smtp' }, '📧 邮件已发送 (SMTP)')
+      return { sent: true, method: 'smtp', result: smtpResult }
+    }
+  } catch (e) {
+    safeLog({ to, subject, error: e.message }, '⚠️ SMTP 发送失败')
+  }
+
+  // 降级：输出到 console（开发模式）
+  safeLog({ to, subject, type: 'email_fallback' }, '📧 邮件降级输出（生产请配置 Resend 或 SMTP）')
+  return { sent: false, method: 'console' }
 }
 
 /**
@@ -115,4 +151,4 @@ async function sendVerificationCode(email, code) {
   return { sent: false, method: 'console', code }
 }
 
-module.exports = { sendVerificationCode }
+module.exports = { sendEmail, sendVerificationCode }

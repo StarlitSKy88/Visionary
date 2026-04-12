@@ -177,9 +177,98 @@ async function chatWithAgent(message, history, agentConfig) {
   })
 }
 
+/**
+ * 简单补全接口（用于 ReAct Engine）
+ * 直接传入单个提示词，返回内容
+ */
+async function complete(params) {
+  const { messages, model, maxTokens } = params
+  return chat(messages, { taskType: 'complete', model, maxTokens })
+}
+
+/**
+ * 流式补全接口（用于 SSE）
+ * 返回流式响应，通过回调函数处理每个 chunk
+ */
+async function completeStream(params) {
+  const { messages, model, maxTokens, temperature = 0.7, onChunk, onComplete, onError } = params
+
+  try {
+    // 获取 API 配置
+    const apiKey = process.env.OPENAI_API_KEY || process.env.OPENROUTER_API_KEY
+    const baseUrl = process.env.OPENROUTER_BASE_URL || 'https://api.openai.com/v1'
+
+    // 构建请求
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: model || 'gpt-4o',
+        messages,
+        max_tokens: maxTokens || 2000,
+        temperature,
+        stream: true,
+      }),
+    })
+
+    if (!response.ok) {
+      const err = await response.text()
+      throw new Error(`API 请求失败: ${response.status} ${err}`)
+    }
+
+    // 处理流
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+
+    if (!reader) {
+      throw new Error('无法获取响应流')
+    }
+
+    let fullContent = ''
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6)
+          if (data === '[DONE]') continue
+
+          try {
+            const parsed = JSON.parse(data)
+            const chunk = parsed.choices?.[0]?.delta?.content
+            if (chunk) {
+              fullContent += chunk
+              if (onChunk) onChunk(chunk)
+            }
+          } catch (e) {
+            // 忽略解析错误
+          }
+        }
+      }
+    }
+
+    if (onComplete) onComplete(fullContent)
+    return fullContent
+  } catch (error) {
+    if (onError) onError(error)
+    throw error
+  }
+}
+
 module.exports = {
   chat, chatJSON,
   understandDemand, gatherIndustryIntel, analyzeRootCause,
   designSolution, debateOptimize, evaluateScore, chatWithAgent,
+  complete, completeStream,
   getAvailableProviders: () => router.getAvailableProviders(),
 }
