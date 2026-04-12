@@ -23,7 +23,7 @@ function runMigrations(store) {
   store.run(MIGRATIONS_TABLE)
 
   // 获取已执行的迁移
-  const applied = store.all('SELECT name FROM __migrations')
+  const applied = store.queryList('SELECT name FROM __migrations')
   const appliedNames = new Set(applied.map(r => r.name))
 
   // 定义所有迁移（按顺序）
@@ -48,7 +48,7 @@ function runMigrations(store) {
     {
       name: '002_add_leave_balances_index',
       sql: `
-        CREATE INDEX IF NOT EXISTS idx_leave_balances_member ON leave_balances(member_id);
+        CREATE INDEX IF NOT EXISTS idx_leave_balances_member ON leave_balances(team_member_id);
       `
     },
     {

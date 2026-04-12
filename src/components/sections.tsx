@@ -56,6 +56,8 @@ export function Navbar() {
 }
 
 export function HeroSection() {
+  const { t } = useI18n()
+
   return (
     <section className="relative pt-32 pb-16 md:pt-44 md:pb-28 overflow-hidden">
       {/* Layered background */}
@@ -73,37 +75,31 @@ export function HeroSection() {
           <div className="mb-8 flex justify-center animate-fade-in-up">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#3ec489]/20 bg-[#3ec489]/10 backdrop-blur-sm">
               <Sparkles className="w-4 h-4 text-[#3ec489]" />
-              <span className="text-sm text-[#3ec489] font-medium">全新发布 · 7天免费试用</span>
+              <span className="text-sm text-[#3ec489] font-medium">{t.home.heroBadge}</span>
             </div>
           </div>
 
           {/* Title */}
           <h1 className="animate-fade-in-up animation-delay-100 text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
-            口语描述痛点
-            <br />
-            <span className="gradient-text">
-              AI自动生成助手
-            </span>
+            {t.home.heroTitle}
           </h1>
 
           {/* Description */}
           <p className="animate-fade-in-up animation-delay-200 text-lg md:text-xl text-[#a3a3a3] mb-10 max-w-2xl mx-auto leading-relaxed">
-            不会表达专业需求？没关系。说出你的经营困难，
-            <br className="hidden md:block" />
-            我们帮你生成能真正干活的<span className="text-white font-medium">AI数字员工</span>。
+            {t.home.heroSubtitle}
           </p>
 
           {/* CTA */}
           <div className="animate-fade-in-up animation-delay-300 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/register" className="w-full sm:w-auto">
               <Button size="lg" className="w-full sm:w-auto group text-base h-12 px-8 shadow-xl shadow-[#3ec489]/20 hover:shadow-[#3ec489]/40 transition-all duration-300">
-                免费开始使用
+                {t.home.heroCta}
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link href="#features" className="w-full sm:w-auto">
               <Button variant="outline" size="lg" className="w-full sm:w-auto text-base h-12 px-8 border-[#333333] hover:bg-[#262626] transition-all">
-                了解更多
+                {t.home.heroLearnMore}
               </Button>
             </Link>
           </div>
@@ -112,15 +108,15 @@ export function HeroSection() {
           <div className="animate-fade-in-up animation-delay-400 mt-12 flex items-center justify-center gap-6 text-sm text-[#737373]">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-[#3ec489]" />
-              <span>隐私优先</span>
+              <span>{t.home.trustPrivacy}</span>
             </div>
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-[#3ec489]" />
-              <span>数据本地处理</span>
+              <span>{t.home.trustLocal}</span>
             </div>
             <div className="flex items-center gap-2">
               <Bot className="w-4 h-4 text-[#3ec489]" />
-              <span>AI智能</span>
+              <span>{t.home.trustAI}</span>
             </div>
           </div>
         </div>
@@ -130,26 +126,28 @@ export function HeroSection() {
 }
 
 export function FeaturesSection() {
+  const { t } = useI18n()
+
   const features = [
     {
       icon: MessageSquare,
-      title: '口语即专业',
-      desc: '大白话描述困难，自动转化为专业AI配置'
+      title: t.home.feature1Title,
+      desc: t.home.feature1Desc,
     },
     {
       icon: Workflow,
-      title: '6轮深度推演',
-      desc: '多Agent协作辩论，确保方案可行'
+      title: t.home.feature2Title,
+      desc: t.home.feature2Desc,
     },
     {
       icon: Star,
-      title: '免费重试',
-      desc: '评分95分才交付，不满意无限优化'
+      title: t.home.feature3Title,
+      desc: t.home.feature3Desc,
     },
     {
       icon: Users,
-      title: '裂变退款',
-      desc: '3天邀请3人，全额退款继续使用'
+      title: t.home.feature4Title,
+      desc: t.home.feature4Desc,
     },
   ]
 
@@ -161,10 +159,10 @@ export function FeaturesSection() {
       <div className="relative mx-auto max-w-7xl px-4 md:px-8">
         <div className="text-center mb-14 md:mb-20">
           <h2 className="animate-fade-in-up text-3xl md:text-4xl font-bold tracking-tight text-white mb-4">
-            为什么选择我们
+            {t.home.featureTitle}
           </h2>
           <p className="animate-fade-in-up animation-delay-100 text-[#a3a3a3] text-lg">
-            专为小微企业设计的AI解决方案
+            {t.home.featureSubtitle}
           </p>
         </div>
 
@@ -197,28 +195,30 @@ export function FeaturesSection() {
 }
 
 export function PricingSection() {
+  const { t } = useI18n()
+
   const plans = [
     {
-      name: '体验版',
-      price: '¥0',
-      period: '永久',
-      features: ['1次基础翻译体验', '通用行业规则'],
+      name: t.home.pricingFree,
+      price: t.home.pricingFreePrice || '¥0',
+      period: t.home.pricingFreePeriod || '永久',
+      features: [t.home.pricingFreeDesc1 || '1次基础翻译体验', t.home.pricingFreeDesc2 || '通用行业规则'],
       popular: false,
       icon: FileText
     },
     {
-      name: '专业版',
-      price: '¥299',
-      period: '永久',
-      features: ['垂类专属规则库', '四平台配置导出', '7天免费试用'],
+      name: t.home.pricingPro,
+      price: t.home.pricingProPrice,
+      period: t.home.pricingProPeriod,
+      features: [t.home.pricingProDesc1 || '垂类专属规则库', t.home.pricingProDesc2 || '四平台配置导出', t.home.pricingProDesc3 || '7天免费试用'],
       popular: true,
       icon: Zap
     },
     {
-      name: '旗舰版',
-      price: '¥499',
-      period: '永久',
-      features: ['全行业规则库', '优先人工支持', 'API接口调用'],
+      name: t.home.pricingEnterprise,
+      price: t.home.pricingEnterprisePrice || '¥499',
+      period: t.home.pricingEnterprisePeriod || '永久',
+      features: [t.home.pricingEnterpriseDesc1 || '全行业规则库', t.home.pricingEnterpriseDesc2 || '优先人工支持', t.home.pricingEnterpriseDesc3 || 'API接口调用'],
       popular: false,
       icon: BarChart3
     },
@@ -232,10 +232,10 @@ export function PricingSection() {
       <div className="relative mx-auto max-w-7xl px-4 md:px-8">
         <div className="text-center mb-14 md:mb-20">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-4">
-            简单透明的定价
+            {t.home.pricingTitle}
           </h2>
           <p className="text-[#a3a3a3] text-lg">
-            一次性付费，永久使用
+            {t.home.pricingSubtitle}
           </p>
         </div>
 
@@ -252,7 +252,7 @@ export function PricingSection() {
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge variant="primary" size="md">推荐</Badge>
+                  <Badge variant="primary" size="md">{t.home.pricingRecommended}</Badge>
                 </div>
               )}
 
@@ -284,7 +284,7 @@ export function PricingSection() {
                   variant={plan.popular ? 'primary' : 'outline'}
                   className={cn('w-full', !plan.popular && 'border-[#333333] hover:bg-[#262626]')}
                 >
-                  开始使用
+                  {t.home.pricingStart}
                 </Button>
               </Link>
             </div>
@@ -296,6 +296,8 @@ export function PricingSection() {
 }
 
 export function Footer() {
+  const { t } = useI18n()
+
   return (
     <footer className="border-t border-[#2e2e2e] bg-[#0f0f0f]">
       <div className="mx-auto max-w-7xl px-4 md:px-8 py-12">
@@ -305,13 +307,13 @@ export function Footer() {
               <Bot className="w-4 h-4 text-white" />
             </div>
             <span className="text-sm text-[#737373]">
-              © 2025 AI经营助手
+              {t.home.footerRights}
             </span>
           </div>
           <div className="flex items-center gap-6 text-sm text-[#737373]">
-            <Link href="/privacy" className="hover:text-[#3ec489] transition-colors">隐私政策</Link>
-            <Link href="/terms" className="hover:text-[#3ec489] transition-colors">服务条款</Link>
-            <Link href="/contact" className="hover:text-[#3ec489] transition-colors">联系我们</Link>
+            <Link href="/privacy" className="hover:text-[#3ec489] transition-colors">{t.home.footerPrivacy}</Link>
+            <Link href="/terms" className="hover:text-[#3ec489] transition-colors">{t.home.footerTerms}</Link>
+            <Link href="/contact" className="hover:text-[#3ec489] transition-colors">{t.home.footerContact}</Link>
           </div>
         </div>
       </div>
