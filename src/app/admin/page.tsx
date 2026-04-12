@@ -144,10 +144,10 @@ export default function AdminPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-[#161616]">
+        <Card className="w-full max-w-md border-[#2e2e2e] bg-[#1f1f1f] shadow-xl">
           <CardHeader>
-            <CardTitle>{t.admin.loginTitle}</CardTitle>
+            <CardTitle className="text-white">{t.admin.loginTitle}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -158,9 +158,9 @@ export default function AdminPage() {
                 onChange={(e) => setLoginKey(e.target.value)}
               />
               {loginState === 'error' && (
-                <p className="text-sm text-[#bf616a]">{t.admin.loginError}</p>
+                <p className="text-sm text-[#f25d44]">{t.admin.loginError}</p>
               )}
-              <Button type="submit" className="w-full" disabled={loginState === 'loading'}>
+              <Button type="submit" className="w-full shadow-lg shadow-[#3ec489]/20" disabled={loginState === 'loading'}>
                 {loginState === 'loading' ? t.common.loading : t.admin.login}
               </Button>
             </form>
@@ -171,21 +171,26 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#161616]">
       {/* Header */}
-      <header className="border-b border-[rgba(136,192,208,0.12)] bg-[#3f4756]">
+      <header className="border-b border-[#2e2e2e] bg-[#1f1f1f]">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <h1 className="text-xl font-display font-bold text-[#88c0d0]">{t.admin.title}</h1>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3ec489] to-[#2eb06c] flex items-center justify-center shadow-lg shadow-[#3ec489]/20">
+                <Bot className="w-5 h-5 text-white" />
+              </div>
+              <h1 className="text-xl font-bold text-white">{t.admin.title}</h1>
+            </div>
             <nav className="flex gap-1">
               {(['stats', 'users', 'orders', 'token', 'knowledge'] as Tab[]).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === tab
-                      ? 'bg-[rgba(136,192,208,0.15)] text-[#88c0d0]'
-                      : 'text-[#d8dee9] hover:bg-[rgba(136,192,208,0.08)]'
+                      ? 'bg-[#3ec489]/15 text-[#3ec489]'
+                      : 'text-[#a3a3a3] hover:bg-[#262626] hover:text-white'
                   }`}
                 >
                   {tab === 'stats' && t.admin.stats}
@@ -198,11 +203,11 @@ export default function AdminPage() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={handleRefresh}>
+            <Button variant="ghost" size="sm" onClick={handleRefresh} className="text-[#a3a3a3] hover:text-white">
               {t.admin.refresh}
             </Button>
             <Link href="/">
-              <Button variant="outline" size="sm">{t.admin.backHome}</Button>
+              <Button variant="outline" size="sm" className="border-[#333333] hover:bg-[#262626]">{t.admin.backHome}</Button>
             </Link>
           </div>
         </div>

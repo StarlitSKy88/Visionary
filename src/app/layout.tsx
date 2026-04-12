@@ -24,8 +24,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="zh-CN" className={spaceGrotesk.variable}>
-      <body className="antialiased bg-[#2e3440] text-[#eceff4]">
+    <html lang="zh-CN" className="dark">
+      <body className="antialiased bg-[#161616] text-white min-h-screen">
         <ErrorBoundary>
           <I18nProvider>
             <ToastProvider>

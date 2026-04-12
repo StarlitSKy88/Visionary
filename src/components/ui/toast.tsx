@@ -49,26 +49,69 @@ function ToastContainer() {
         <div
           key={toast.id}
           className={cn(
-            'flex items-center gap-3 px-4 py-3 rounded-xl shadow-strong transition-all duration-300',
-            'animate-slide-in min-w-[300px] max-w-[500px]',
+            'flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg transition-all duration-200',
+            'animate-fade-in min-w-[300px] max-w-[420px]',
             {
-              'bg-[#a3be8c] text-[#2e3440]': toast.type === 'success',
-              'bg-[#bf616a] text-[#eceff4]': toast.type === 'error',
-              'bg-[#ebcb8b] text-[#2e3440]': toast.type === 'warning',
-              'bg-[#88c0d0] text-[#2e3440]': toast.type === 'info',
+              'bg-success text-white': toast.type === 'success',
+              'bg-error text-white': toast.type === 'error',
+              'bg-warning text-white': toast.type === 'warning',
+              'bg-supabase text-white': toast.type === 'info',
             }
           )}
         >
-          <span className="flex-1 font-medium text-sm">{toast.message}</span>
+          {/* Icon */}
+          <span className="flex-shrink-0">
+            {toast.type === 'success' && <SuccessIcon />}
+            {toast.type === 'error' && <ErrorIcon />}
+            {toast.type === 'warning' && <WarningIcon />}
+            {toast.type === 'info' && <InfoIcon />}
+          </span>
+
+          <span className="flex-1 text-sm font-medium">{toast.message}</span>
+
           <button
             onClick={() => removeToast(toast.id)}
-            className="opacity-70 hover:opacity-100 transition-opacity"
+            className="flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity"
           >
-            ✕
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
       ))}
     </div>
+  )
+}
+
+function SuccessIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    </svg>
+  )
+}
+
+function ErrorIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  )
+}
+
+function WarningIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+  )
+}
+
+function InfoIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
   )
 }
 

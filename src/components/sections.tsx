@@ -10,20 +10,29 @@ import {
   ArrowRight,
   Shield,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Bot,
+  Zap,
+  Users,
+  FileText,
+  Star,
+  Check,
+  MessageSquare,
+  BarChart3,
+  Workflow
 } from 'lucide-react'
 
 export function Navbar() {
   const { t } = useI18n()
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-[rgba(136,192,208,0.1)]">
+    <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-[rgba(255,255,255,0.05)]">
       <div className="mx-auto max-w-7xl px-4 md:px-8 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-lg bg-[#88c0d0] flex items-center justify-center text-[#2e3440] font-display font-bold text-lg group-hover:shadow-frost transition-shadow">
-            AI
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3ec489] to-[#2eb06c] flex items-center justify-center shadow-lg shadow-[#3ec489]/20 group-hover:shadow-[#3ec489]/40 transition-all">
+            <Bot className="w-5 h-5 text-white" />
           </div>
-          <span className="font-display font-semibold text-[#eceff4] hidden sm:block tracking-tight">
+          <span className="font-semibold text-white hidden sm:block tracking-tight">
             {t.common.appName}
           </span>
         </Link>
@@ -31,12 +40,12 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <LangSwitch />
           <Link href="/login">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="text-[#a3a3a3] hover:text-white">
               {t.common.login}
             </Button>
           </Link>
           <Link href="/register">
-            <Button size="sm">
+            <Button size="sm" className="shadow-lg shadow-[#3ec489]/20">
               {t.home.pricingFree}
             </Button>
           </Link>
@@ -50,59 +59,69 @@ export function HeroSection() {
   return (
     <section className="relative pt-32 pb-16 md:pt-44 md:pb-28 overflow-hidden">
       {/* Layered background */}
-      <div className="absolute inset-0 bg-[#2e3440]" />
-      <div className="absolute inset-0 bg-grid" />
-      <div className="absolute inset-0 bg-radial-frost" />
+      <div className="absolute inset-0 bg-[#161616]" />
+      <div className="absolute inset-0 bg-grid opacity-50" />
+      <div className="absolute inset-0 bg-radial-green-intense" />
 
       {/* Floating orbs */}
-      <div className="absolute top-20 left-[10%] w-64 h-64 bg-[#88c0d0] opacity-[0.06] rounded-full blur-[100px] animate-float" />
-      <div className="absolute bottom-10 right-[15%] w-48 h-48 bg-[#a3be8c] opacity-[0.04] rounded-full blur-[80px] animate-pulse-glow" />
+      <div className="absolute top-20 left-[10%] w-96 h-96 bg-[#3ec489] opacity-10 rounded-full blur-[120px] animate-float" />
+      <div className="absolute bottom-10 right-[15%] w-[500px] h-[500px] bg-[#3ec489] opacity-5 rounded-full blur-[150px] animate-float" style={{ animationDelay: '2s' }} />
 
       <div className="relative mx-auto max-w-7xl px-4 md:px-8">
         <div className="mx-auto max-w-3xl text-center">
           {/* Badge */}
-          <div className="mb-8 flex justify-center fade-in stagger-1">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[rgba(136,192,208,0.2)] bg-[rgba(136,192,208,0.06)]">
-              <Sparkles className="w-4 h-4 text-[#88c0d0]" />
-              <span className="text-sm text-[#88c0d0] font-medium">全新发布 · 7天免费试用</span>
+          <div className="mb-8 flex justify-center animate-fade-in-up">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#3ec489]/20 bg-[#3ec489]/10 backdrop-blur-sm">
+              <Sparkles className="w-4 h-4 text-[#3ec489]" />
+              <span className="text-sm text-[#3ec489] font-medium">全新发布 · 7天免费试用</span>
             </div>
           </div>
 
           {/* Title */}
-          <h1 className="fade-in stagger-2 text-4xl md:text-6xl lg:text-7xl font-display font-extrabold tracking-tight text-[#eceff4] mb-6 leading-[1.1]">
+          <h1 className="animate-fade-in-up animation-delay-100 text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
             口语描述痛点
             <br />
-            <span className="text-[#88c0d0]">
+            <span className="gradient-text">
               AI自动生成助手
             </span>
           </h1>
 
           {/* Description */}
-          <p className="fade-in stagger-3 text-lg md:text-xl text-[#81a1c1] mb-10 max-w-2xl mx-auto leading-relaxed font-light">
+          <p className="animate-fade-in-up animation-delay-200 text-lg md:text-xl text-[#a3a3a3] mb-10 max-w-2xl mx-auto leading-relaxed">
             不会表达专业需求？没关系。说出你的经营困难，
             <br className="hidden md:block" />
-            我们帮你生成能真正干活的<span className="text-[#eceff4] font-normal">AI数字员工</span>。
+            我们帮你生成能真正干活的<span className="text-white font-medium">AI数字员工</span>。
           </p>
 
           {/* CTA */}
-          <div className="fade-in stagger-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="animate-fade-in-up animation-delay-300 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/register" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto group text-base">
+              <Button size="lg" className="w-full sm:w-auto group text-base h-12 px-8 shadow-xl shadow-[#3ec489]/20 hover:shadow-[#3ec489]/40 transition-all duration-300">
                 免费开始使用
-                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link href="#features" className="w-full sm:w-auto">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto text-base">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto text-base h-12 px-8 border-[#333333] hover:bg-[#262626] transition-all">
                 了解更多
               </Button>
             </Link>
           </div>
 
           {/* Trust */}
-          <div className="fade-in stagger-5 mt-10 flex items-center justify-center gap-2 text-sm text-[#616e88]">
-            <Shield className="w-4 h-4 text-[#a3be8c]" />
-            <span>隐私优先 · 数据本地处理 · 不上云</span>
+          <div className="animate-fade-in-up animation-delay-400 mt-12 flex items-center justify-center gap-6 text-sm text-[#737373]">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-[#3ec489]" />
+              <span>隐私优先</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-[#3ec489]" />
+              <span>数据本地处理</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Bot className="w-4 h-4 text-[#3ec489]" />
+              <span>AI智能</span>
+            </div>
           </div>
         </div>
       </div>
@@ -112,21 +131,39 @@ export function HeroSection() {
 
 export function FeaturesSection() {
   const features = [
-    { icon: '🎯', title: '口语即专业', desc: '大白话描述困难，自动转化为专业AI配置' },
-    { icon: '🧠', title: '6轮深度推演', desc: '多Agent协作辩论，确保方案可行' },
-    { icon: '🔄', title: '免费重试', desc: '评分95分才交付，不满意无限优化' },
-    { icon: '💰', title: '裂变退款', desc: '3天邀请3人，全额退款继续使用' },
+    {
+      icon: MessageSquare,
+      title: '口语即专业',
+      desc: '大白话描述困难，自动转化为专业AI配置'
+    },
+    {
+      icon: Workflow,
+      title: '6轮深度推演',
+      desc: '多Agent协作辩论，确保方案可行'
+    },
+    {
+      icon: Star,
+      title: '免费重试',
+      desc: '评分95分才交付，不满意无限优化'
+    },
+    {
+      icon: Users,
+      title: '裂变退款',
+      desc: '3天邀请3人，全额退款继续使用'
+    },
   ]
 
   return (
-    <section id="features" className="py-20 md:py-32 relative bg-[#2e3440]">
-      <div className="absolute inset-0 bg-grid opacity-50" />
+    <section id="features" className="py-20 md:py-32 relative bg-[#1a1a1a]">
+      <div className="absolute inset-0 bg-grid-subtle opacity-30" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-px bg-gradient-to-r from-transparent via-[#3ec489]/20 to-transparent" />
+
       <div className="relative mx-auto max-w-7xl px-4 md:px-8">
         <div className="text-center mb-14 md:mb-20">
-          <h2 className="fade-in stagger-1 text-3xl md:text-4xl font-display font-extrabold tracking-tight text-[#eceff4] mb-4">
+          <h2 className="animate-fade-in-up text-3xl md:text-4xl font-bold tracking-tight text-white mb-4">
             为什么选择我们
           </h2>
-          <p className="fade-in stagger-2 text-[#81a1c1] text-lg font-light">
+          <p className="animate-fade-in-up animation-delay-100 text-[#a3a3a3] text-lg">
             专为小微企业设计的AI解决方案
           </p>
         </div>
@@ -136,19 +173,21 @@ export function FeaturesSection() {
             <div
               key={i}
               className={cn(
-                'group relative rounded-2xl p-6 border border-[rgba(136,192,208,0.1)] bg-[#3b4252]',
-                'hover:border-[rgba(136,192,208,0.25)] hover:shadow-frost transition-all duration-300',
-                `fade-in stagger-${i + 2}`
+                'group relative rounded-2xl p-6 border border-[#2e2e2e] bg-[#1f1f1f]',
+                'hover:border-[#3ec489]/30 hover:bg-[#262626] transition-all duration-300',
+                `animate-fade-in-up animation-delay-${i + 100}`
               )}
             >
-              <div className="text-3xl mb-4">{f.icon}</div>
-              <h3 className="text-base font-display font-bold text-[#eceff4] mb-2 tracking-tight">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3ec489]/20 to-[#3ec489]/5 flex items-center justify-center mb-4">
+                <f.icon className="w-6 h-6 text-[#3ec489]" />
+              </div>
+              <h3 className="text-base font-bold text-white mb-2">
                 {f.title}
               </h3>
-              <p className="text-sm text-[#81a1c1] leading-relaxed font-light">
+              <p className="text-sm text-[#a3a3a3] leading-relaxed">
                 {f.desc}
               </p>
-              <ChevronRight className="absolute bottom-6 right-6 w-4 h-4 text-[#616e88] group-hover:text-[#88c0d0] group-hover:translate-x-0.5 transition-all" />
+              <ChevronRight className="absolute bottom-6 right-6 w-4 h-4 text-[#525252] group-hover:text-[#3ec489] group-hover:translate-x-1 transition-all" />
             </div>
           ))}
         </div>
@@ -159,61 +198,91 @@ export function FeaturesSection() {
 
 export function PricingSection() {
   const plans = [
-    { name: '体验版', price: '¥0', period: '永久', features: ['1次基础翻译体验', '通用行业规则'], popular: false },
-    { name: '专业版', price: '¥299', period: '永久', features: ['垂类专属规则库', '四平台配置导出', '7天免费试用'], popular: true },
-    { name: '旗舰版', price: '¥499', period: '永久', features: ['全行业规则库', '优先人工支持', 'API接口调用'], popular: false },
+    {
+      name: '体验版',
+      price: '¥0',
+      period: '永久',
+      features: ['1次基础翻译体验', '通用行业规则'],
+      popular: false,
+      icon: FileText
+    },
+    {
+      name: '专业版',
+      price: '¥299',
+      period: '永久',
+      features: ['垂类专属规则库', '四平台配置导出', '7天免费试用'],
+      popular: true,
+      icon: Zap
+    },
+    {
+      name: '旗舰版',
+      price: '¥499',
+      period: '永久',
+      features: ['全行业规则库', '优先人工支持', 'API接口调用'],
+      popular: false,
+      icon: BarChart3
+    },
   ]
 
   return (
-    <section id="pricing" className="py-20 md:py-32 relative">
-      <div className="absolute inset-0 bg-radial-aurora" />
+    <section id="pricing" className="py-20 md:py-32 relative bg-[#161616]">
+      <div className="absolute inset-0 bg-radial-green opacity-30" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#3ec489]/5 rounded-full blur-[200px]" />
+
       <div className="relative mx-auto max-w-7xl px-4 md:px-8">
         <div className="text-center mb-14 md:mb-20">
-          <h2 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight text-[#eceff4] mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-4">
             简单透明的定价
           </h2>
-          <p className="text-[#81a1c1] text-lg font-light">
+          <p className="text-[#a3a3a3] text-lg">
             一次性付费，永久使用
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {plans.map((plan, i) => (
             <div
               key={i}
               className={cn(
                 'relative rounded-2xl p-8 border transition-all duration-300',
                 plan.popular
-                  ? 'bg-[#3b4252] border-[#88c0d0] shadow-frost md:scale-105 ring-1 ring-[rgba(136,192,208,0.2)]'
-                  : 'bg-[#3b4252] border-[rgba(136,192,208,0.1)] hover:border-[rgba(136,192,208,0.2)]'
+                  ? 'bg-gradient-to-b from-[#262626] to-[#1f1f1f] border-[#3ec489] shadow-xl shadow-[#3ec489]/10 md:scale-105'
+                  : 'bg-[#1f1f1f] border-[#2e2e2e] hover:border-[#333333]'
               )}
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge variant="solid">推荐</Badge>
+                  <Badge variant="primary" size="md">推荐</Badge>
                 </div>
               )}
+
+              <div className="w-12 h-12 rounded-xl bg-[#3ec489]/10 flex items-center justify-center mb-6">
+                <plan.icon className="w-6 h-6 text-[#3ec489]" />
+              </div>
+
               <div className="text-center mb-6">
-                <h3 className="text-lg font-display font-bold text-[#eceff4] mb-3 tracking-tight">
+                <h3 className="text-lg font-bold text-white mb-3">
                   {plan.name}
                 </h3>
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl font-display font-extrabold text-[#eceff4]">{plan.price}</span>
-                  <span className="text-[#616e88]">/{plan.period}</span>
+                  <span className="text-4xl font-bold text-white">{plan.price}</span>
+                  <span className="text-[#737373]">/{plan.period}</span>
                 </div>
               </div>
+
               <ul className="space-y-3 mb-8">
                 {plan.features.map((feature, j) => (
-                  <li key={j} className="flex items-center gap-2 text-sm text-[#81a1c1] font-light">
-                    <span className="text-[#a3be8c] text-base">✓</span>
+                  <li key={j} className="flex items-center gap-3 text-sm text-[#a3a3a3]">
+                    <Check className="w-4 h-4 text-[#3ec489] flex-shrink-0" />
                     {feature}
                   </li>
                 ))}
               </ul>
+
               <Link href="/register" className="block">
                 <Button
                   variant={plan.popular ? 'primary' : 'outline'}
-                  className="w-full"
+                  className={cn('w-full', !plan.popular && 'border-[#333333] hover:bg-[#262626]')}
                 >
                   开始使用
                 </Button>
@@ -228,21 +297,21 @@ export function PricingSection() {
 
 export function Footer() {
   return (
-    <footer className="border-t border-[rgba(136,192,208,0.08)] bg-[#2e3440]">
+    <footer className="border-t border-[#2e2e2e] bg-[#0f0f0f]">
       <div className="mx-auto max-w-7xl px-4 md:px-8 py-12">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-md bg-[#88c0d0] flex items-center justify-center text-[#2e3440] font-display font-bold text-xs">
-              AI
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3ec489] to-[#2eb06c] flex items-center justify-center">
+              <Bot className="w-4 h-4 text-white" />
             </div>
-            <span className="text-sm text-[#616e88]">
+            <span className="text-sm text-[#737373]">
               © 2025 AI经营助手
             </span>
           </div>
-          <div className="flex items-center gap-6 text-sm text-[#616e88]">
-            <Link href="/privacy" className="hover:text-[#88c0d0] transition-colors">隐私政策</Link>
-            <Link href="/terms" className="hover:text-[#88c0d0] transition-colors">服务条款</Link>
-            <Link href="/contact" className="hover:text-[#88c0d0] transition-colors">联系我们</Link>
+          <div className="flex items-center gap-6 text-sm text-[#737373]">
+            <Link href="/privacy" className="hover:text-[#3ec489] transition-colors">隐私政策</Link>
+            <Link href="/terms" className="hover:text-[#3ec489] transition-colors">服务条款</Link>
+            <Link href="/contact" className="hover:text-[#3ec489] transition-colors">联系我们</Link>
           </div>
         </div>
       </div>
