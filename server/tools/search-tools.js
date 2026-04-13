@@ -22,26 +22,84 @@ class WebSearchTool extends BaseTool {
   }
 
   async execute(args, context) {
-    const { query, num_results } = args
+    const { query, num_results = 10 } = args
 
-    // TODO: 实际调用搜索 API (如 Google, Bing, DuckDuckGo)
-    // 这里返回模拟数据
+    try {
+      // 使用 DuckDuckGo Instant Answer API (无需 API key)
+      const encodedQuery = encodeURIComponent(query)
+      const ddgUrl = `https://api.duckduckgo.com/?q=${encodedQuery}&format=json&no_html=1&skip_disambig=1`
 
-    return {
-      query,
-      results: [
-        {
-          title: `关于 "${query}" 的搜索结果 1`,
-          url: 'https://example.com/result-1',
-          snippet: `这是关于 ${query} 的详细内容摘要...`,
+      const response = await fetch(ddgUrl, {
+        headers: {
+          'Accept': 'application/json',
         },
-        {
-          title: `关于 "${query}" 的搜索结果 2`,
-          url: 'https://example.com/result-2',
-          snippet: `这是另一个关于 ${query} 的搜索结果...`,
-        },
-      ],
-      totalResults: 2,
+      })
+
+      if (!response.ok) {
+        throw new Error(`搜索请求失败: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      // 解析 DuckDuckGo 结果
+      const results = []
+
+      // Topic 摘要
+      if (data.AbstractText) {
+        results.push({
+          title: data.Heading || query,
+          url: data.AbstractURL || '',
+          snippet: data.AbstractText,
+          source: 'DuckDuckGo',
+        })
+      }
+
+      // Related Topics
+      if (data.RelatedTopics && results.length < num_results) {
+        for (const topic of data.RelatedTopics.slice(0, num_results)) {
+          if (topic.Text && topic.FirstURL) {
+            results.push({
+              title: query,
+              url: topic.FirstURL,
+              snippet: topic.Text,
+              source: 'DuckDuckGo',
+            })
+          }
+        }
+      }
+
+      // 如果没有结果，返回提示
+      if (results.length === 0) {
+        return {
+          query,
+          results: [{
+            title: `搜索: ${query}`,
+            url: `https://duckduckgo.com/?q=${encodedQuery}`,
+            snippet: `在 DuckDuckGo 上搜索 "${query}" 的结果`,
+            source: 'DuckDuckGo',
+          }],
+          totalResults: 1,
+        }
+      }
+
+      return {
+        query,
+        results: results.slice(0, num_results),
+        totalResults: results.length,
+      }
+    } catch (error) {
+      // 搜索失败时返回错误信息和备用链接
+      return {
+        query,
+        error: `搜索失败: ${error.message}`,
+        results: [{
+          title: `搜索: ${query}`,
+          url: `https://duckduckgo.com/?q=${encodeURIComponent(query)}`,
+          snippet: `请手动访问 DuckDuckGo 搜索 "${query}"`,
+          source: '备用',
+        }],
+        totalResults: 1,
+      }
     }
   }
 }

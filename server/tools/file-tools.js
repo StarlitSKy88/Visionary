@@ -235,7 +235,7 @@ class FilePreviewTool extends BaseTool {
 
   async execute(args, context) {
     const { prisma } = context
-    const { file_id, max_lines } = args
+    const { file_id, max_lines = 100 } = args
 
     const file = await prisma.file.findUnique({
       where: { id: file_id },
@@ -245,18 +245,49 @@ class FilePreviewTool extends BaseTool {
       throw new ToolExecutionError(`文件不存在: ${file_id}`, this.name)
     }
 
-    // TODO: 实际读取文件内容
-    // 根据文件类型返回预览
+    // 从存储服务下载文件
+    const { data: base64Data } = await download(file.storageKey)
+    const buffer = Buffer.from(base64Data, 'base64')
 
-    const preview = {
+    let preview = {
       id: file.id,
       fileName: file.originalName,
       mimeType: file.mimeType,
       fileCategory: file.fileCategory,
-      previewText: file.previewText || '预览暂不可用',
-      thumbnailUrl: file.thumbnailUrl,
-      // 如果是表格，返回表格信息
-      spreadsheetInfo: file.spreadsheetInfo,
+      sizeBytes: file.sizeBytes,
+    }
+
+    // 根据文件类型处理预览
+    if (file.mimeType?.startsWith('text/')) {
+      // 文本文件：直接返回文本内容
+      const content = buffer.toString('utf-8')
+      const lines = content.split('\n').slice(0, max_lines)
+      preview.previewText = lines.join('\n')
+      preview.truncated = content.split('\n').length > max_lines
+      preview.lineCount = content.split('\n').length
+    } else if (file.mimeType?.includes('spreadsheet') || file.mimeType?.includes('excel') || file.mimeType?.includes('csv')) {
+      // 表格文件：返回表格摘要信息
+      try {
+        const content = buffer.toString('utf-8')
+        const lines = content.split('\n').slice(0, 10)
+        preview.spreadsheetInfo = {
+          preview: lines.join('\n'),
+          totalLines: content.split('\n').length,
+          truncated: content.split('\n').length > 10,
+        }
+      } catch (e) {
+        preview.spreadsheetInfo = { error: '无法解析表格内容' }
+      }
+    } else if (file.mimeType?.startsWith('image/')) {
+      // 图片文件：返回缩略图或 Base64
+      preview.imageData = `data:${file.mimeType};base64,${base64Data}`
+      preview.thumbnailUrl = file.thumbnailUrl
+    } else if (file.mimeType?.includes('pdf')) {
+      // PDF：返回页数信息
+      preview.previewText = `[PDF 文件，共 ${file.sizeBytes} 字节]`
+    } else {
+      // 其他文件：返回基本信息
+      preview.previewText = `[${file.mimeType || 'unknown'} 文件，${file.sizeBytes} 字节]`
     }
 
     return preview

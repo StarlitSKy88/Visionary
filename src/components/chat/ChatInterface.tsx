@@ -175,7 +175,7 @@ export default function ChatInterface({
       )
     )
 
-    // TODO: 调用 API 记录反馈
+    // 调用 API 记录反馈
     fetch('/api/chat/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
