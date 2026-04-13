@@ -379,6 +379,306 @@ class MemoryService {
       },
     })
   }
+
+  /**
+   * 获取记忆统计信息
+   */
+  async getMemoryStats(userId, agentId) {
+    const [
+      shortTermCount,
+      longTermCount,
+      episodicCount,
+      totalCharCount,
+    ] = await Promise.all([
+      prisma.shortTermMemory.count({ where: { userId, agentId } }),
+      prisma.longTermMemory.count({ where: { userId, agentId, isActive: true } }),
+      prisma.episodicMemory.count({ where: { userId, agentId } }),
+      prisma.longTermMemory.aggregate({
+        where: { userId, agentId, isActive: true },
+        _sum: { content: true },
+      }),
+    ])
+
+    return {
+      shortTermCount,
+      longTermCount,
+      episodicCount,
+      totalCharCount: totalCharCount._sum.content?.length || 0,
+    }
+  }
+
+  /**
+   * 检查并触发记忆压缩
+   * 当长期记忆超过阈值时自动压缩
+   */
+  async checkAndCompressMemories(userId, agentId) {
+    const LONG_TERM_LIMIT = 500 // 长期记忆数量上限
+    const TOTAL_CHARS_LIMIT = 500000 // 总字符数上限（~500KB）
+
+    const stats = await this.getMemoryStats(userId, agentId)
+
+    // 检查是否需要压缩
+    const needsCompression =
+      stats.longTermCount > LONG_TERM_LIMIT ||
+      stats.totalCharCount > TOTAL_CHARS_LIMIT
+
+    if (!needsCompression) {
+      return { triggered: false, reason: 'memory_within_limits' }
+    }
+
+    // 触发压缩
+    return await this.compressMemories(userId, agentId)
+  }
+
+  /**
+   * 压缩记忆
+   * 使用 AI 总结低重要性的记忆，保留关键信息
+   */
+  async compressMemories(userId, agentId) {
+    try {
+      // 获取需要压缩的记忆（按重要性排序，低的优先压缩）
+      const memoriesToCompress = await prisma.longTermMemory.findMany({
+        where: {
+          userId,
+          agentId,
+          isActive: true,
+          importance: { lt: 6 }, // 低重要性记忆优先压缩
+        },
+        orderBy: [
+          { importance: 'asc' },
+          { lastUsedAt: 'asc' },
+        ],
+        take: 50, // 每次最多压缩50条
+      })
+
+      if (memoriesToCompress.length === 0) {
+        return { triggered: false, reason: 'no_low_importance_memories' }
+      }
+
+      // 按内容相似度分组
+      const groups = this._groupSimilarMemories(memoriesToCompress)
+
+      let compressedCount = 0
+      let deletedCount = 0
+
+      for (const group of groups) {
+        if (group.length <= 1) continue
+
+        // 保留最重要的一条
+        const primary = group[0]
+        const toMerge = group.slice(1)
+
+        // 生成合并摘要
+        const mergedContent = await this._summarizeMemoryGroup(group)
+
+        if (mergedContent && mergedContent.length < primary.content.length * group.length) {
+          // 更新主记忆
+          await prisma.longTermMemory.update({
+            where: { id: primary.id },
+            data: {
+              content: mergedContent,
+              contentSummary: mergedContent.substring(0, 100),
+              useCount: primary.useCount + toMerge.reduce((sum, m) => sum + m.useCount, 0),
+              tags: [...new Set([...primary.tags, ...toMerge.flatMap(m => m.tags)])],
+            },
+          })
+
+          // 删除被合并的记忆
+          await prisma.longTermMemory.deleteMany({
+            where: { id: { in: toMerge.map(m => m.id) } },
+          })
+
+          deletedCount += toMerge.length
+          compressedCount++
+        }
+      }
+
+      return {
+        triggered: true,
+        compressedGroups: compressedCount,
+        deletedMemories: deletedCount,
+      }
+    } catch (error) {
+      console.error('记忆压缩失败:', error)
+      return { triggered: false, error: error.message }
+    }
+  }
+
+  /**
+   * 将相似的记忆分组
+   */
+  _groupSimilarMemories(memories) {
+    const groups = []
+    const processed = new Set()
+
+    for (const memory of memories) {
+      if (processed.has(memory.id)) continue
+
+      const group = [memory]
+      processed.add(memory.id)
+
+      // 查找相似的记忆（相同类型、相同类别、有重叠的标签）
+      for (const other of memories) {
+        if (processed.has(other.id)) continue
+
+        const similarity = this._calculateSimilarity(memory, other)
+        if (similarity > 0.6) {
+          group.push(other)
+          processed.add(other.id)
+        }
+      }
+
+      groups.push(group)
+    }
+
+    return groups
+  }
+
+  /**
+   * 计算两条记忆的相似度
+   */
+  _calculateSimilarity(m1, m2) {
+    let score = 0
+
+    // 相同类型
+    if (m1.memoryType === m2.memoryType) score += 0.3
+
+    // 相同类别
+    if (m1.category === m2.category) score += 0.2
+
+    // 有重叠标签
+    const tags1 = new Set(m1.tags || [])
+    const tags2 = new Set(m2.tags || [])
+    const overlap = [...tags1].filter(t => tags2.has(t)).length
+    if (overlap > 0) score += 0.2 * Math.min(overlap, 3) / 3
+
+    // 内容有重叠词汇
+    const words1 = new Set(m1.content.split(/\s+/).slice(0, 20))
+    const words2 = new Set(m2.content.split(/\s+/).slice(0, 20))
+    const contentOverlap = [...words1].filter(w => words2.has(w) && w.length > 3).length
+    if (contentOverlap > 3) score += 0.3
+
+    return score
+  }
+
+  /**
+   * 总结一组记忆（使用 AI）
+   */
+  async _summarizeMemoryGroup(group) {
+    try {
+      const { chat } = require('../lib/ai-service')
+
+      const contents = group.map((m, i) => `${i + 1}. ${m.content}`).join('\n')
+
+      const prompt = `请总结以下相关记忆，保留所有关键信息，删除重复内容，生成一段连贯的摘要（不超过200字）：
+
+${contents}
+
+摘要：`
+
+      const summary = await chat([{ role: 'user', content: prompt }], {
+        temperature: 0.3,
+        maxTokens: 300,
+      })
+
+      return summary.trim()
+    } catch (error) {
+      // AI 总结失败时，返回第一条记忆
+      console.error('AI 记忆总结失败:', error)
+      return group[0].content
+    }
+  }
+
+  /**
+   * 清理过期记忆
+   */
+  async cleanupExpiredMemories() {
+    try {
+      // 删除过期的短期记忆
+      const result = await prisma.shortTermMemory.deleteMany({
+        where: {
+          expiresAt: { lt: new Date() },
+          isPinned: false,
+        },
+      })
+
+      // 清理过期的邀请码
+      await prisma.emailCode.deleteMany({
+        where: {
+          expiresAt: { lt: BigInt(Date.now()) },
+          used: 0,
+        },
+      })
+
+      return {
+        deletedShortTermMemories: result.count,
+      }
+    } catch (error) {
+      console.error('记忆清理失败:', error)
+      return { error: error.message }
+    }
+  }
+
+  /**
+   * 压缩 MEMORY.md 内容（当超过限制时）
+   */
+  async compressAgentMemory(agentId) {
+    const agent = await prisma.agent.findUnique({
+      where: { id: agentId },
+      select: { memoryContent: true },
+    })
+
+    if (!agent?.memoryContent) return { compressed: false }
+
+    const MEMORY_LIMIT = 2200
+
+    if (agent.memoryContent.length <= MEMORY_LIMIT) {
+      return { compressed: false }
+    }
+
+    // 使用 AI 压缩
+    try {
+      const { chat } = require('../lib/ai-service')
+
+      const prompt = `请压缩以下 Agent 记忆文本，保留关键信息和经验总结，删除重复内容，限制在 ${MEMORY_LIMIT} 字以内：
+
+${agent.memoryContent}
+
+压缩后的记忆：`
+
+      const compressed = await chat([{ role: 'user', content: prompt }], {
+        temperature: 0.3,
+        maxTokens: 2500,
+      })
+
+      await prisma.agent.update({
+        where: { id: agentId },
+        data: { memoryContent: compressed.trim() },
+      })
+
+      return {
+        compressed: true,
+        originalLength: agent.memoryContent.length,
+        compressedLength: compressed.trim().length,
+      }
+    } catch (error) {
+      console.error('MEMORY.md 压缩失败:', error)
+
+      // 降级：直接截断
+      const truncated = agent.memoryContent.substring(0, MEMORY_LIMIT)
+      await prisma.agent.update({
+        where: { id: agentId },
+        data: { memoryContent: truncated },
+      })
+
+      return {
+        compressed: true,
+        originalLength: agent.memoryContent.length,
+        compressedLength: truncated.length,
+        fallback: true,
+      }
+    }
+  }
 }
 
 // 单例

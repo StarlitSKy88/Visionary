@@ -255,24 +255,76 @@ score: ${agentConfig.score}
 })
 
 // 反馈路由
-router.post('/feedback', authMiddleware, (req, res) => {
-  const { agentId, message, feedback } = req.body
+router.post('/feedback', authMiddleware, async (req, res) => {
+  const { agentId, messageId, feedback } = req.body
   const userId = req.user.userId
 
-  if (!agentId || !message || !feedback) {
+  if (!agentId || !messageId || !feedback) {
     return res.status(400).json({ success: false, error: '参数不完整' })
   }
 
-  if (!['thumbs_up', 'thumbs_down'].includes(feedback)) {
+  if (!['thumbs_up', 'thumbs_down', 'correction'].includes(feedback)) {
     return res.status(400).json({ success: false, error: '无效的反馈类型' })
   }
 
   try {
-    Database.saveFeedback(agentId, userId, message, feedback)
+    const { learningService } = require('../services/learning-service')
+    const { prisma } = require('../lib/prisma')
+
+    // 处理学习
+    await learningService.processFeedback(userId, agentId, messageId, {
+      type: feedback,
+      content: req.body.content,
+    })
+
+    // 同时保存到数据库（兼容旧逻辑）
+    try {
+      Database.saveFeedback(agentId, userId, messageId, feedback)
+    } catch (e) {
+      // 忽略 SQLite 保存错误
+    }
+
     res.json({ success: true })
   } catch (error) {
     safeLog({ error: error.message, type: 'feedback_error' }, '❌ 反馈保存失败')
     res.status(500).json({ success: false, error: '保存反馈失败' })
+  }
+})
+
+// 学习状态路由
+router.get('/learning/:agentId', authMiddleware, async (req, res) => {
+  const { agentId } = req.params
+  const userId = req.user.userId
+
+  try {
+    const { learningService } = require('../services/learning-service')
+    const { prisma } = require('../lib/prisma')
+
+    // 检查权限
+    const agent = await prisma.agent.findFirst({
+      where: { id: agentId, userId },
+    })
+
+    if (!agent) {
+      return res.status(403).json({ success: false, error: '无权访问此 Agent' })
+    }
+
+    // 获取学习统计
+    const [knowledge, stats, effectiveness] = await Promise.all([
+      learningService.getLearnedKnowledge(userId, agentId),
+      prisma.learningRecord.count({ where: { userId, agentId } }),
+      learningService.analyzeLearningEffectiveness(userId, agentId),
+    ])
+
+    res.json({
+      success: true,
+      knowledge,
+      totalRecords: stats,
+      effectiveness,
+    })
+  } catch (error) {
+    safeLog({ error: error.message, type: 'learning_stats_error' }, '❌ 获取学习状态失败')
+    res.status(500).json({ success: false, error: '获取学习状态失败' })
   }
 })
 
