@@ -4,6 +4,7 @@
  */
 
 const { prisma } = require('../lib/prisma')
+const { trainingDataCollector } = require('./training-data-collector')
 
 class LearningService {
   /**
@@ -103,6 +104,13 @@ AI 回复：${message.content}
     } catch (e) {
       console.error('学习成功模式失败:', e)
     }
+
+    // 构建训练数据（自动收集高质量成功案例）
+    try {
+      await trainingDataCollector.buildFromSuccessFeedback(userId, agentId, message, 75)
+    } catch (e) {
+      console.error('构建训练数据失败:', e)
+    }
   }
 
   /**
@@ -150,6 +158,13 @@ AI 回复：${message.content}
         sourceMessageId: message.id,
       },
     })
+
+    // 构建训练数据（纠正数据质量最高）
+    try {
+      await trainingDataCollector.buildFromCorrection(userId, agentId, message, correction, 90)
+    } catch (e) {
+      console.error('构建纠正训练数据失败:', e)
+    }
   }
 
   /**

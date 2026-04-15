@@ -575,6 +575,78 @@ model EmailCode {
 }
 
 // ============================================
+// 微调训练数据
+// ============================================
+
+model FineTuningTrainingData {
+  id         String   @id @default(uuid())
+  userId     String
+  agentId    String
+
+  // 训练对 (OpenAI 格式)
+  prompt     String
+  completion String
+
+  // 来源
+  sourceType        String   // 'thumbs_up' / 'correction' / 'implicit_success'
+  sourceMessageId   String?
+
+  // 质量标记
+  qualityScore Int      @default(50)  // 1-100
+  isApproved   Boolean  @default(false)
+  isUsed      Boolean  @default(false)
+
+  // 元数据
+  metadata    Json?
+
+  createdAt   DateTime @default(now())
+
+  @@map("fine_tuning_training_data")
+}
+
+// ============================================
+// 微调模型版本
+// ============================================
+
+model FineTunedModel {
+  id         String   @id @default(uuid())
+  userId     String
+  agentId    String
+
+  // 模型标识
+  baseModel        String   // 'nvidia/nemotron-3-super-120b-a12b:free'
+  fineTunedModelId String? // OpenRouter 返回的微调模型 ID
+  modelAlias       String   // 用户定义的模型别名
+
+  // 状态
+  status      String   @default("draft") // draft/preparing/training/queued/running/succeeded/failed/cancelled
+  isActive    Boolean  @default(false)
+
+  // 训练信息
+  trainingJobId   String?
+  trainingFileId  String?
+  trainingProgress Int?   // 0-100
+
+  // 费用
+  estimatedCost Float?
+  actualCost   Float?
+
+  // 训练结果
+  resultMetrics Json?
+  errorMessage  String?
+
+  // 版本
+  version       Int      @default(1)
+  parentModelId String?  // 上一版本
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  @@map("fine_tuned_models")
+}
+
+// ============================================
 // 邀请关系（保留现有功能）
 // ============================================
 

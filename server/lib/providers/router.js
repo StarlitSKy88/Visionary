@@ -259,6 +259,42 @@ class ProviderRouter {
   }
 
   /**
+   * 获取微调模型路由（如果可用）
+   * @param {string} userId
+   * @param {string} agentId
+   * @param {string} taskType
+   * @returns {Promise<{provider: BaseProvider, model: string, temperature: number, maxTokens: number, isFineTuned: boolean, modelVersion: number}|null>}
+   */
+  async resolveFineTunedRoute(userId, agentId, taskType) {
+    // 动态导入避免循环依赖
+    const { fineTuningManager } = require('../../services/fine-tuning-manager')
+
+    try {
+      const activeModel = await fineTuningManager.getActiveModel(userId, agentId)
+
+      if (!activeModel || !activeModel.fineTunedModelId) {
+        return null // 没有激活的微调模型
+      }
+
+      // 获取任务类型的默认温度和 token 配置
+      const route = TASK_ROUTES[taskType] || TASK_ROUTES['default']
+      const openrouter = this.providers.openrouter
+
+      return {
+        provider: openrouter,
+        model: activeModel.fineTunedModelId,
+        temperature: route.temperature,
+        maxTokens: route.maxTokens,
+        isFineTuned: true,
+        modelVersion: activeModel.version,
+      }
+    } catch (error) {
+      console.error('获取微调路由失败:', error)
+      return null
+    }
+  }
+
+  /**
    * 统一聊天接口 - 自动路由（带熔断）
    */
   async chat(messages, options = {}) {

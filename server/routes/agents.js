@@ -328,4 +328,181 @@ router.get('/learning/:agentId', authMiddleware, async (req, res) => {
   }
 })
 
+// ==================== 微调相关路由 ====================
+
+/**
+ * 获取训练数据统计
+ */
+router.get('/fine-tune/:agentId/stats', authMiddleware, async (req, res) => {
+  const { agentId } = req.params
+  const userId = req.user.userId
+
+  try {
+    const { prisma } = require('../lib/prisma')
+    const { trainingDataCollector } = require('../services/training-data-collector')
+
+    // 检查权限
+    const agent = await prisma.agent.findFirst({
+      where: { id: agentId, userId },
+    })
+
+    if (!agent) {
+      return res.status(403).json({ success: false, error: '无权访问此 Agent' })
+    }
+
+    const stats = await trainingDataCollector.getTrainingDataStats(agentId)
+
+    res.json({
+      success: true,
+      stats,
+    })
+  } catch (error) {
+    safeLog({ error: error.message, type: 'fine_tune_stats_error' }, '❌ 获取训练数据统计失败')
+    res.status(500).json({ success: false, error: '获取训练数据统计失败' })
+  }
+})
+
+/**
+ * 列出微调模型
+ */
+router.get('/fine-tune/:agentId/models', authMiddleware, async (req, res) => {
+  const { agentId } = req.params
+  const userId = req.user.userId
+
+  try {
+    const { prisma } = require('../lib/prisma')
+    const { fineTuningManager } = require('../services/fine-tuning-manager')
+
+    // 检查权限
+    const agent = await prisma.agent.findFirst({
+      where: { id: agentId, userId },
+    })
+
+    if (!agent) {
+      return res.status(403).json({ success: false, error: '无权访问此 Agent' })
+    }
+
+    const models = await fineTuningManager.listFineTuningModels(userId, agentId)
+
+    res.json({
+      success: true,
+      models,
+    })
+  } catch (error) {
+    safeLog({ error: error.message, type: 'list_models_error' }, '❌ 获取微调模型列表失败')
+    res.status(500).json({ success: false, error: '获取微调模型列表失败' })
+  }
+})
+
+/**
+ * 触发微调训练
+ */
+router.post('/fine-tune/:agentId', authMiddleware, async (req, res) => {
+  const { agentId } = req.params
+  const userId = req.user.userId
+
+  try {
+    const { prisma } = require('../lib/prisma')
+    const { trainingDataCollector } = require('../services/training-data-collector')
+    const { fineTuningManager } = require('../services/fine-tuning-manager')
+
+    // 检查权限
+    const agent = await prisma.agent.findFirst({
+      where: { id: agentId, userId },
+    })
+
+    if (!agent) {
+      return res.status(403).json({ success: false, error: '无权访问此 Agent' })
+    }
+
+    // 1. 准备训练数据
+    let dataset
+    try {
+      dataset = await trainingDataCollector.prepareDataset(agentId)
+    } catch (e) {
+      return res.status(400).json({
+        success: false,
+        error: e.message,
+        stats: await trainingDataCollector.getTrainingDataStats(agentId),
+      })
+    }
+
+    // 2. 创建微调任务
+    const model = await fineTuningManager.createFineTuningJob(userId, agentId, dataset)
+
+    res.json({
+      success: true,
+      model,
+      datasetSize: dataset.count,
+    })
+  } catch (error) {
+    safeLog({ error: error.message, type: 'fine_tune_error' }, '❌ 触发微调失败')
+    res.status(500).json({ success: false, error: '触发微调失败: ' + error.message })
+  }
+})
+
+/**
+ * 获取微调任务状态
+ */
+router.get('/fine-tune/:agentId/models/:modelId', authMiddleware, async (req, res) => {
+  const { agentId, modelId } = req.params
+  const userId = req.user.userId
+
+  try {
+    const { prisma } = require('../lib/prisma')
+    const { fineTuningManager } = require('../services/fine-tuning-manager')
+
+    // 检查权限
+    const agent = await prisma.agent.findFirst({
+      where: { id: agentId, userId },
+    })
+
+    if (!agent) {
+      return res.status(403).json({ success: false, error: '无权访问此 Agent' })
+    }
+
+    const model = await fineTuningManager.getFineTuningStatus(modelId)
+
+    res.json({
+      success: true,
+      model,
+    })
+  } catch (error) {
+    safeLog({ error: error.message, type: 'fine_tune_status_error' }, '❌ 获取微调状态失败')
+    res.status(500).json({ success: false, error: '获取微调状态失败' })
+  }
+})
+
+/**
+ * 激活微调模型
+ */
+router.post('/fine-tune/:agentId/models/:modelId/activate', authMiddleware, async (req, res) => {
+  const { agentId, modelId } = req.params
+  const userId = req.user.userId
+
+  try {
+    const { prisma } = require('../lib/prisma')
+    const { fineTuningManager } = require('../services/fine-tuning-manager')
+
+    // 检查权限
+    const agent = await prisma.agent.findFirst({
+      where: { id: agentId, userId },
+    })
+
+    if (!agent) {
+      return res.status(403).json({ success: false, error: '无权访问此 Agent' })
+    }
+
+    const model = await fineTuningManager.activateModel(modelId)
+
+    res.json({
+      success: true,
+      model,
+    })
+  } catch (error) {
+    safeLog({ error: error.message, type: 'activate_model_error' }, '❌ 激活微调模型失败')
+    res.status(500).json({ success: false, error: '激活微调模型失败: ' + error.message })
+  }
+})
+
 module.exports = router
