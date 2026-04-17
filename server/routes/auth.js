@@ -209,6 +209,24 @@ router.post('/register', (req, res) => {
   }
 })
 
+// 测试登录接口（仅开发环境可用，跳过验证码）
+if (process.env.NODE_ENV !== 'production') {
+  router.post('/test-login', (req, res) => {
+    const { email } = req.body
+    if (!email || !isValidEmail(email)) {
+      return res.status(400).json({ success: false, error: '请输入正确的邮箱' })
+    }
+
+    const user = Database.getUserByEmail(email)
+    if (!user) {
+      return res.status(404).json({ success: false, error: '用户不存在' })
+    }
+
+    const token = generateToken(user.id, user.email)
+    res.json({ success: true, token, user: formatUserResponse(user) })
+  })
+}
+
 router.get('/me', authMiddleware, (req, res) => {
   res.json({ success: true, user: formatUserResponse(req.userRecord) })
 })
