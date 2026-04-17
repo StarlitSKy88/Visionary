@@ -85,6 +85,22 @@ class TokenUsageRepository extends BaseRepository {
       [limit]
     )
   }
+
+  /**
+   * 获取用户当月 token 用量
+   */
+  getUserMonthlyUsage(userId) {
+    return this._queryOne(`
+      SELECT
+        COALESCE(SUM(input_tokens), 0) as inputTokens,
+        COALESCE(SUM(output_tokens), 0) as outputTokens,
+        COALESCE(SUM(input_tokens + output_tokens), 0) as totalTokens,
+        COUNT(*) as callCount
+      FROM token_usage
+      WHERE user_id = ?
+        AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
+    `, [userId])
+  }
 }
 
 module.exports = TokenUsageRepository

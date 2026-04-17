@@ -1,4 +1,5 @@
-const { getDb, saveDatabase } = require('./init')
+// 统一使用 store-sqlite 的 db 实例，避免两个独立的数据库连接
+const { getDb, saveDatabase } = require('./store-sqlite')
 
 // 防抖保存 - 减少磁盘写入
 let _saveTimer = null

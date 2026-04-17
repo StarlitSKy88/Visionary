@@ -7,6 +7,79 @@ const { generateToken, authMiddleware, sanitizeInput, isValidEmail, rateLimiter 
 const { sendVerificationCode } = require('../lib/email-service')
 const { safeLog } = require('../lib/logger')
 
+// 验证码暴力破解锁定配置
+const MAX_FAILED_ATTEMPTS = 5      // 5次失败后锁定
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000  // 锁定15分钟
+
+/**
+ * 检查邮箱+IP是否被锁定
+ */
+function isEmailCodeLocked(email, ip) {
+  const { getDb, saveDatabase } = require('../db/store-sqlite')
+  const db = getDb()
+  if (!db) return false
+
+  const result = db.exec(
+    `SELECT locked_until FROM email_code_attempts WHERE email = ? AND ip = ? LIMIT 1`,
+    [email, ip]
+  )
+
+  if (result.length === 0 || result[0].values.length === 0) return false
+
+  const lockedUntil = result[0].values[0][0]
+  if (!lockedUntil) return false
+
+  return Date.now() < lockedUntil
+}
+
+/**
+ * 记录验证码验证失败
+ */
+function recordEmailCodeFailure(email, ip) {
+  const { getDb, saveDatabase } = require('../db/store-sqlite')
+  const db = getDb()
+  if (!db) return
+
+  // 查找现有记录
+  const existing = db.exec(
+    `SELECT id, failed_count FROM email_code_attempts WHERE email = ? AND ip = ?`,
+    [email, ip]
+  )
+
+  if (existing.length > 0 && existing[0].values.length > 0) {
+    const id = existing[0].values[0][0]
+    const failedCount = existing[0].values[0][1] + 1
+
+    const lockedUntil = failedCount >= MAX_FAILED_ATTEMPTS
+      ? Date.now() + LOCKOUT_DURATION_MS
+      : null
+
+    db.run(
+      `UPDATE email_code_attempts SET failed_count = ?, locked_until = ? WHERE id = ?`,
+      [failedCount, lockedUntil, id]
+    )
+  } else {
+    db.run(
+      `INSERT INTO email_code_attempts (email, ip, failed_count, locked_until) VALUES (?, ?, 1, NULL)`,
+      [email, ip]
+    )
+  }
+
+  require('../db/store-sqlite').debouncedSave()
+}
+
+/**
+ * 清除验证码失败记录（验证成功后调用）
+ */
+function clearEmailCodeAttempts(email, ip) {
+  const { getDb } = require('../db/store-sqlite')
+  const db = getDb()
+  if (!db) return
+
+  db.run(`DELETE FROM email_code_attempts WHERE email = ? AND ip = ?`, [email, ip])
+  require('../db/store-sqlite').debouncedSave()
+}
+
 router.post('/send-email-code', async (req, res) => {
   const { email } = req.body
 
@@ -14,22 +87,29 @@ router.post('/send-email-code', async (req, res) => {
     return res.status(400).json({ success: false, error: '请输入正确的邮箱地址' })
   }
 
-  if (!rateLimiter.check(`email:${email}`, 1, 60 * 1000)) {
+  const sanitizedEmail = sanitizeInput(email)
+  const clientIp = req.ip || req.connection.remoteAddress
+
+  if (!rateLimiter.check(`email:${sanitizedEmail}`, 1, 60 * 1000)) {
     return res.status(429).json({ success: false, error: '发送过于频繁，请60秒后重试' })
   }
 
-  const clientIp = req.ip || req.connection.remoteAddress
   if (!rateLimiter.check(`ip:${clientIp}`, 5, 60 * 1000)) {
     return res.status(429).json({ success: false, error: '操作过于频繁，请稍后重试' })
+  }
+
+  // 检查是否被锁定
+  if (isEmailCodeLocked(sanitizedEmail, clientIp)) {
+    return res.status(429).json({ success: false, error: '验证次数过多，请15分钟后再试' })
   }
 
   const code = Math.random().toString().slice(2, 8)
   const expiresAt = Date.now() + 5 * 60 * 1000
 
-  Database.createEmailCode(email, code, expiresAt)
+  Database.createEmailCode(sanitizedEmail, code, expiresAt)
 
   // 尝试发送真实邮件（降级到 console）
-  await sendVerificationCode(email, code)
+  await sendVerificationCode(sanitizedEmail, code)
 
   res.json({ success: true, message: '验证码已发送' })
 })
@@ -41,14 +121,24 @@ router.post('/login', (req, res) => {
   }
 
   const sanitizedEmail = sanitizeInput(email)
+  const clientIp = req.ip || req.connection.remoteAddress
 
   if (!rateLimiter.check(`login:${sanitizedEmail}`, 5, 60 * 1000)) {
     return res.status(429).json({ success: false, error: '尝试次数过多，请稍后重试' })
   }
 
+  // 检查是否被锁定
+  if (isEmailCodeLocked(sanitizedEmail, clientIp)) {
+    return res.status(429).json({ success: false, error: '验证次数过多，请15分钟后再试' })
+  }
+
   if (!Database.verifyEmailCode(sanitizedEmail, code)) {
+    recordEmailCodeFailure(sanitizedEmail, clientIp)
     return res.status(400).json({ success: false, error: '验证码错误或已过期' })
   }
+
+  // 验证成功，清除失败记录
+  clearEmailCodeAttempts(sanitizedEmail, clientIp)
 
   const user = Database.getUserByEmail(sanitizedEmail)
   if (!user) {
@@ -67,10 +157,20 @@ router.post('/register', (req, res) => {
   }
 
   const sanitizedEmail = sanitizeInput(email)
+  const clientIp = req.ip || req.connection.remoteAddress
+
+  // 检查是否被锁定
+  if (isEmailCodeLocked(sanitizedEmail, clientIp)) {
+    return res.status(429).json({ success: false, error: '验证次数过多，请15分钟后再试' })
+  }
 
   if (!Database.verifyEmailCode(sanitizedEmail, code)) {
+    recordEmailCodeFailure(sanitizedEmail, clientIp)
     return res.status(400).json({ success: false, error: '验证码错误或已过期' })
   }
+
+  // 验证成功，清除失败记录
+  clearEmailCodeAttempts(sanitizedEmail, clientIp)
 
   const existingUser = Database.getUserByEmail(sanitizedEmail)
   if (existingUser) {

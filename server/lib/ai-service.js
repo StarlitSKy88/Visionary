@@ -10,10 +10,26 @@ const { safeLog } = require('./logger')
 
 /**
  * 调用 AI（自动路由到最佳供应商）
+ * 返回纯内容字符串（向后兼容）
  */
 async function chat(messages, options = {}) {
   const result = await router.chat(messages, options)
   return result.content
+}
+
+/**
+ * 调用 AI 并返回完整结果（包含 usage）
+ * 用于需要统计 token 用量的场景
+ */
+async function chatWithUsage(messages, options = {}) {
+  const result = await router.chat(messages, options)
+  return {
+    content: result.content,
+    usage: result.usage || { inputTokens: 0, outputTokens: 0 },
+    model: result.model,
+    latency: result.latency,
+    provider: result.provider,
+  }
 }
 
 /**
@@ -170,7 +186,7 @@ async function chatWithAgent(message, history, agentConfig) {
     ...history.map(h => ({ role: h.role, content: h.content })),
     { role: 'user', content: message },
   ]
-  return chat(messages, {
+  return chatWithUsage(messages, {
     taskType: 'chat',
     temperature: agentConfig.temperature || 0.7,
     maxTokens: agentConfig.maxTokens || 2000,
@@ -266,7 +282,7 @@ async function completeStream(params) {
 }
 
 module.exports = {
-  chat, chatJSON,
+  chat, chatJSON, chatWithUsage,
   understandDemand, gatherIndustryIntel, analyzeRootCause,
   designSolution, debateOptimize, evaluateScore, chatWithAgent,
   complete, completeStream,

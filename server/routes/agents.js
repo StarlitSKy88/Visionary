@@ -4,6 +4,7 @@ const { AgentEngine } = require('../agents/engine')
 const Database = require('../db')
 const { authMiddleware, sanitizeInput, rateLimiter } = require('../lib/auth')
 const { safeLog } = require('../lib/logger')
+const { quotaMiddleware, clearQuotaCache } = require('../lib/quota-middleware')
 
 router.post('/create', authMiddleware, async (req, res) => {
   const { input } = req.body
@@ -70,7 +71,7 @@ router.post('/regenerate/:id', authMiddleware, async (req, res) => {
   }
 })
 
-router.post('/:id/chat', authMiddleware, async (req, res) => {
+router.post('/:id/chat', authMiddleware, quotaMiddleware(), async (req, res) => {
   const { id } = req.params
   const { message, history } = req.body
   const userId = req.user.userId
@@ -103,9 +104,28 @@ router.post('/:id/chat', authMiddleware, async (req, res) => {
         }))
       : []
 
-    const response = await AgentEngine.chat(sanitizedMessage, sanitizedHistory, {
+    const result = await AgentEngine.chat(sanitizedMessage, sanitizedHistory, {
       systemPrompt, temperature: 0.7, maxTokens: 1000,
     })
+
+    // result 包含 { content, usage, model, latency, provider }
+    const response = result.content
+
+    // 记录 token 用量
+    if (result.usage) {
+      Database.tokenUsage.recordUsage({
+        provider: result.provider || 'openrouter',
+        model: result.model || 'unknown',
+        taskType: 'chat',
+        inputTokens: result.usage.inputTokens || 0,
+        outputTokens: result.usage.outputTokens || 0,
+        latencyMs: result.latency || 0,
+        userId,
+        sessionId: id,
+      })
+      // 清除配额缓存
+      clearQuotaCache(userId)
+    }
 
     Database.saveChatMessage(id, userId, 'user', sanitizedMessage)
     Database.saveChatMessage(id, userId, 'assistant', response)
@@ -118,13 +138,17 @@ router.post('/:id/chat', authMiddleware, async (req, res) => {
 })
 
 // 流式对话 (SSE)
-router.post('/:id/chat/stream', authMiddleware, async (req, res) => {
+router.post('/:id/chat/stream', authMiddleware, quotaMiddleware(), async (req, res) => {
   const { id } = req.params
   const { message, history } = req.body
   const userId = req.user.userId
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return res.status(400).json({ success: false, error: '消息不能为空' })
+  }
+
+  if (!rateLimiter.check(`chat:${userId}`, 20, 60 * 1000)) {
+    return res.status(429).json({ success: false, error: '消息发送过于频繁' })
   }
 
   const agent = Database.getAgentByIdForUser(id, userId)
