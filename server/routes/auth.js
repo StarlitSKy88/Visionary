@@ -65,7 +65,7 @@ function recordEmailCodeFailure(email, ip) {
     )
   }
 
-  require('../db/store-sqlite').debouncedSave()
+  require('../db/store-sqlite').store.debouncedSave()
 }
 
 /**
@@ -77,7 +77,7 @@ function clearEmailCodeAttempts(email, ip) {
   if (!db) return
 
   db.run(`DELETE FROM email_code_attempts WHERE email = ? AND ip = ?`, [email, ip])
-  require('../db/store-sqlite').debouncedSave()
+  require('../db/store-sqlite').store.debouncedSave()
 }
 
 router.post('/send-email-code', async (req, res) => {
