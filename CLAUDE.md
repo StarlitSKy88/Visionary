@@ -17,3 +17,16 @@ Key routing rules:
 - Architecture review → invoke plan-eng-review
 - Save progress, checkpoint, resume → invoke checkpoint
 - Code quality, health check → invoke health
+
+## Design System
+
+Always read DESIGN.md before making any visual or UI decisions.
+All font choices, colors, spacing, and aesthetic direction are defined there.
+Do not deviate without explicit user approval.
+
+Key design tokens:
+- Light mode bg: #f5f3ef (浅云白), Dark mode bg: #0d0d0d (深渊黑)
+- Accent gold: #c9a962 (亮) / #d4af37 (暗)
+- Primary accent: #2d4a3e (亮) / #3a5a8a (暗)
+- Font: Ma Shan Zheng (戳心文案), Noto Sans SC (正文), JetBrains Mono (数据)
+- 36 personality types each have专属色卡
