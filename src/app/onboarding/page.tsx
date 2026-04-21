@@ -129,7 +129,7 @@ export default function OnboardingPage() {
         {/* Logo */}
         <div className="text-center mb-6 fade-in-up">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-supabase shadow-lg shadow-supabase/20 mb-5">
-            <Bot className="w-7 h-7 text-white" />
+            <Bot className="w-7 h-7 text-white" aria-hidden="true" />
           </div>
           <h1 className="text-2xl font-bold text-sb-gray-900 dark:text-white mb-1">
             快速配置
@@ -157,7 +157,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-supabase/10 mb-3">
-                  <Building2 className="w-6 h-6 text-supabase" />
+                  <Building2 className="w-6 h-6 text-supabase" aria-hidden="true" />
                 </div>
                 <h2 className="text-xl font-semibold text-sb-gray-900 dark:text-white mb-1">
                   关于您和您的企业
@@ -231,7 +231,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-error/10 mb-3">
-                  <Target className="w-6 h-6 text-error" />
+                  <Target className="w-6 h-6 text-error" aria-hidden="true" />
                 </div>
                 <h2 className="text-xl font-semibold text-sb-gray-900 dark:text-white mb-1">
                   您最头疼什么问题？
@@ -256,7 +256,7 @@ export default function OnboardingPage() {
                           ? 'border-error bg-error text-white'
                           : 'border-sb-gray-300 dark:border-sb-gray-600'
                       }`}>
-                        {formData.painPoints.includes(point) && <Check className="w-3 h-3" />}
+                        {formData.painPoints.includes(point) && <Check className="w-3 h-3" aria-hidden="true" />}
                       </span>
                       {point}
                     </span>
@@ -285,7 +285,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-supabase/10 mb-3">
-                  <MessageCircle className="w-6 h-6 text-supabase" />
+                  <MessageCircle className="w-6 h-6 text-supabase" aria-hidden="true" />
                 </div>
                 <h2 className="text-xl font-semibold text-sb-gray-900 dark:text-white mb-1">
                   最后几个小问题
@@ -347,7 +347,7 @@ export default function OnboardingPage() {
               {/* Summary */}
               <div className="bg-gradient-to-br from-sb-gray-50 to-sb-gray-100 dark:from-sb-gray-800 dark:to-sb-gray-700 rounded-xl p-5 border border-sb-gray-200 dark:border-sb-gray-600">
                 <h3 className="text-sm font-semibold text-sb-gray-700 dark:text-sb-gray-300 mb-4 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-supabase" />
+                  <Sparkles className="w-4 h-4 text-supabase" aria-hidden="true" />
                   您的专属 AI 员工将配置为：
                 </h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -401,7 +401,7 @@ export default function OnboardingPage() {
                 onClick={handleSubmit}
                 disabled={loading}
                 loading={loading}
-                leftIcon={!loading && <Zap className="w-4 h-4" />}
+                leftIcon={!loading && <Zap className="w-4 h-4" aria-hidden="true" />}
                 className="shadow-lg shadow-supabase/20"
               >
                 {loading ? '创建中...' : '创建我的 AI 员工'}

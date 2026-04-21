@@ -165,7 +165,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3ec489] to-[#2eb06c] flex items-center justify-center shadow-lg shadow-[#3ec489]/20 group-hover:scale-105 transition-transform">
-              <Bot className="w-5 h-5 text-white" />
+              <Bot className="w-5 h-5 text-white" aria-hidden="true" />
             </div>
             <span className="font-semibold text-white">AI经营助手</span>
           </Link>
@@ -181,7 +181,7 @@ export default function DashboardPage() {
                 localStorage.removeItem('token')
                 router.push('/')
               }}
-              leftIcon={<LogOut className="w-4 h-4" />}
+              leftIcon={<LogOut className="w-4 h-4" aria-hidden="true" />}
               className="text-[#a3a3a3] hover:text-white"
             >
               退出
@@ -194,7 +194,7 @@ export default function DashboardPage() {
         {/* Welcome Header */}
         <div className="mb-8 fade-in-up">
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-5 h-5 text-[#3ec489]" />
+            <Sparkles className="w-5 h-5 text-[#3ec489]" aria-hidden="true" />
             <span className="text-sm text-[#3ec489] font-medium">欢迎回来</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">
@@ -210,7 +210,7 @@ export default function DashboardPage() {
           <Card className="p-5 bg-gradient-to-br from-[#3ec489]/10 to-transparent border-[#3ec489]/20" padding="none">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-[#3ec489]/10 flex items-center justify-center">
-                <Bot className="w-6 h-6 text-[#3ec489]" />
+                <Bot className="w-6 h-6 text-[#3ec489]" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">{agents.length}</p>
@@ -222,7 +222,7 @@ export default function DashboardPage() {
           <Card className="p-5 bg-gradient-to-br from-[#3ec489]/10 to-transparent border-[#3ec489]/20" padding="none">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-[#3ec489]/10 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-[#3ec489]" />
+                <TrendingUp className="w-6 h-6 text-[#3ec489]" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">{user?.inviteProgress || 0}</p>
@@ -234,7 +234,7 @@ export default function DashboardPage() {
           <Card className="p-5 bg-gradient-to-br from-[#f5b100]/10 to-transparent border-[#f5b100]/20" padding="none">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-[#f5b100]/10 flex items-center justify-center">
-                <Gift className="w-6 h-6 text-[#f5b100]" />
+                <Gift className="w-6 h-6 text-[#f5b100]" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">
@@ -254,12 +254,12 @@ export default function DashboardPage() {
               <Card className="p-5 group hover:border-[#3ec489]/30 hover:shadow-lg hover:shadow-[#3ec489]/5 transition-all duration-200" padding="none">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3ec489] to-[#2eb06c] flex items-center justify-center shadow-lg shadow-[#3ec489]/20 group-hover:scale-105 transition-transform">
-                    <Plus className="w-6 h-6 text-white" />
+                    <Plus className="w-6 h-6 text-white" aria-hidden="true" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-white flex items-center gap-1">
                       创建新助手
-                      <ChevronRight className="w-4 h-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                      <ChevronRight className="w-4 h-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" aria-hidden="true" />
                     </div>
                     <div className="text-sm text-[#737373] truncate">描述痛点，AI帮你生成</div>
                   </div>
@@ -274,7 +274,7 @@ export default function DashboardPage() {
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-[#3ec489] flex items-center justify-center shadow-lg shadow-[#3ec489]/20 group-hover:scale-105 transition-transform">
-                  <Gift className="w-6 h-6 text-white" />
+                  <Gift className="w-6 h-6 text-white" aria-hidden="true" />
                 </div>
                 <div className="flex-1">
                   <div className="font-medium text-white flex items-center gap-1">
@@ -291,7 +291,7 @@ export default function DashboardPage() {
             <Card className="p-5" padding="none">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-[#3ec489]/10 flex items-center justify-center">
-                  <User className="w-6 h-6 text-[#3ec489]" />
+                  <User className="w-6 h-6 text-[#3ec489]" aria-hidden="true" />
                 </div>
                 <div className="flex-1">
                   <div className="font-medium text-white">我的邀请码</div>
@@ -304,12 +304,12 @@ export default function DashboardPage() {
               <Card className="p-5 group hover:border-[#f5b100]/30 hover:shadow-lg hover:shadow-[#f5b100]/5 transition-all duration-200" padding="none">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-[#f5b100] flex items-center justify-center shadow-lg shadow-[#f5b100]/20 group-hover:scale-105 transition-transform">
-                    <Users className="w-6 h-6 text-white" />
+                    <Users className="w-6 h-6 text-white" aria-hidden="true" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-white flex items-center gap-1">
                       团队管理
-                      <ChevronRight className="w-4 h-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                      <ChevronRight className="w-4 h-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" aria-hidden="true" />
                     </div>
                     <div className="text-sm text-[#737373]">管理团队成员</div>
                   </div>
@@ -332,7 +332,7 @@ export default function DashboardPage() {
             </div>
             {agents.length === 0 && (
               <Link href="/create-agent">
-                <Button size="sm" leftIcon={<Plus className="w-4 h-4" />}>创建第一个助手</Button>
+                <Button size="sm" leftIcon={<Plus className="w-4 h-4" aria-hidden="true" />}>创建第一个助手</Button>
               </Link>
             )}
           </div>
@@ -340,7 +340,7 @@ export default function DashboardPage() {
           {agents.length === 0 ? (
             <Card className="p-12 text-center border-[#2e2e2e]" padding="lg" variant="outline">
               <div className="w-20 h-20 rounded-2xl bg-[#262626] flex items-center justify-center mx-auto mb-5">
-                <Bot className="w-10 h-10 text-[#737373]" />
+                <Bot className="w-10 h-10 text-[#737373]" aria-hidden="true" />
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">
                 还没有AI助手
@@ -349,7 +349,7 @@ export default function DashboardPage() {
                 创建你的第一个AI助手，开始提升经营效率
               </p>
               <Link href="/create-agent">
-                <Button leftIcon={<Sparkles className="w-4 h-4" />}>
+                <Button leftIcon={<Sparkles className="w-4 h-4" aria-hidden="true" />}>
                   立即创建
                 </Button>
               </Link>
@@ -366,7 +366,7 @@ export default function DashboardPage() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#3ec489]/20 to-[#3ec489]/5 flex items-center justify-center">
-                        <Bot className="w-5 h-5 text-[#3ec489]" />
+                        <Bot className="w-5 h-5 text-[#3ec489]" aria-hidden="true" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-white">{agent.name}</h3>
@@ -374,7 +374,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <Badge variant={agent.score >= 95 ? 'success' : 'secondary'} size="sm">
-                      <Crown className="w-3 h-3 mr-1" />
+                      <Crown className="w-3 h-3 mr-1" aria-hidden="true" />
                       {agent.score}分
                     </Badge>
                   </div>
@@ -389,7 +389,7 @@ export default function DashboardPage() {
                     <Link href={`/chat/${agent.id}`} className="flex-1" onClick={() => {
                       localStorage.setItem('currentAgent', JSON.stringify(agent))
                     }}>
-                      <Button size="sm" className="w-full group-hover:shadow-md transition-shadow" leftIcon={<MessageSquare className="w-4 h-4" />}>
+                      <Button size="sm" className="w-full group-hover:shadow-md transition-shadow" leftIcon={<MessageSquare className="w-4 h-4" aria-hidden="true" />}>
                         对话
                       </Button>
                     </Link>
@@ -397,12 +397,12 @@ export default function DashboardPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleExport(agent.id)}
-                      leftIcon={<Download className="w-4 h-4" />}
+                      leftIcon={<Download className="w-4 h-4" aria-hidden="true" />}
                     >
                       导出
                     </Button>
                     <Button variant="ghost" size="sm">
-                      <Settings className="w-4 h-4" />
+                      <Settings className="w-4 h-4" aria-hidden="true" />
                     </Button>
                   </div>
                 </Card>

@@ -65,7 +65,7 @@ export default function RegisterPage() {
         {/* Logo & Branding */}
         <div className="text-center mb-8 animate-fade-in-up">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-[#3ec489] to-[#2eb06c] shadow-lg shadow-[#3ec489]/30 mb-6 glow-green">
-            <Bot className="w-10 h-10 text-white" />
+            <Bot className="w-10 h-10 text-white" aria-hidden="true" />
           </div>
           <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
             创建账号
@@ -89,7 +89,7 @@ export default function RegisterPage() {
                       : 'bg-[#262626] text-[#737373] border border-[#333333]'
                   }`}>
                     {s < step ? (
-                      <Check className="w-6 h-6" />
+                      <Check className="w-6 h-6" aria-hidden="true" />
                     ) : s}
                   </div>
                   {s < 3 && (
@@ -109,8 +109,9 @@ export default function RegisterPage() {
             {step === 1 && (
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-[#a3a3a3]">邮箱地址</label>
+                  <label htmlFor="reg-email" className="block text-sm font-medium text-[#a3a3a3]">邮箱地址</label>
                   <Input
+                    id="reg-email"
                     type="email"
                     value={form.email}
                     onChange={e => setForm({ ...form, email: e.target.value })}
@@ -120,9 +121,10 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-[#a3a3a3]">验证码</label>
+                  <label htmlFor="reg-code" className="block text-sm font-medium text-[#a3a3a3]">验证码</label>
                   <div className="flex gap-3">
                     <Input
+                      id="reg-code"
                       type="text"
                       value={form.code}
                       onChange={e => setForm({ ...form, code: e.target.value })}

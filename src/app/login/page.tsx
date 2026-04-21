@@ -111,10 +111,11 @@ export default function LoginPage() {
             <div className="p-8">
               <form onSubmit={handleLogin} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-[#a3a3a3]">
+                  <label htmlFor="email" className="block text-sm font-medium text-[#a3a3a3]">
                     邮箱地址
                   </label>
                   <Input
+                    id="email"
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
@@ -125,11 +126,12 @@ export default function LoginPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-[#a3a3a3]">
+                  <label htmlFor="code" className="block text-sm font-medium text-[#a3a3a3]">
                     验证码
                   </label>
                   <div className="flex gap-3">
                     <Input
+                      id="code"
                       type="text"
                       value={code}
                       onChange={e => setCode(e.target.value)}
