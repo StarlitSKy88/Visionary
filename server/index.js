@@ -50,6 +50,10 @@ app.use('/api/orders', require('./routes/orders'))
 app.use('/api/admin', require('./routes/admin'))
 app.use('/api/analytics', require('./routes/analytics'))
 app.use('/api/team', require('./routes/team'))
+app.use('/api/inquiry', require('./routes/inquiry'))
+app.use('/api/payment', require('./routes/payment'))
+app.use('/api/reports', require('./routes/reports'))
+app.use('/api/followup', require('./routes/followup'))
 
 // 健康检查
 app.get('/health', (req, res) => {

@@ -260,6 +260,7 @@ async function initDatabase() {
  * SQLite 存储适配器
  * 实现 StoreInterface 供 Repository 使用
  */
+let storeInstance = null
 const store = {
   /**
    * 执行写 SQL
@@ -297,27 +298,39 @@ const store = {
   /**
    * 执行原始 SQL（用于复杂聚合查询）
    */
-  raw(sql, params = []) {
-    return db.exec(sql, params)
+  exec(sql, params = []) {
+    if (params.length === 0) return db.exec(sql)
+    const stmt = db.prepare(sql)
+    stmt.bind(params)
+    const results = []
+    while (stmt.step()) results.push(stmt.getAsObject())
+    stmt.free()
+    return results.length > 0 ? results : []
+  },
+
+  /**
+   * 保存数据库到文件
+   */
+  save() {
+    saveDatabase()
   },
 
   /**
    * 防抖保存
    */
-  debouncedSave,
+  debouncedSave() {
+    debouncedSave()
+  },
 
   /**
    * 立即保存（用于关键操作）
    */
-  immediateSave,
-
-  /**
-   * 获取原始 db 实例（兼容期使用，新代码应避免）
-   */
-  getRawDb() {
-    return db
+  immediateSave() {
+    immediateSave()
   },
 }
+// 初始化 store 实例
+storeInstance = store
 
 function _rowToObject(columns, values, jsonFields = []) {
   const obj = {}
@@ -331,4 +344,4 @@ function _rowToObject(columns, values, jsonFields = []) {
   return obj
 }
 
-module.exports = { store, initDatabase, saveDatabase, getDb: () => db }
+module.exports = { get store() { return storeInstance }, initDatabase, saveDatabase, getDb: () => db }

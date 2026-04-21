@@ -8,7 +8,9 @@
  * 迁移 PG 时只需替换 store-sqlite.js 为 store-pg.js
  */
 
-const { store, initDatabase, getDb } = require('./store-sqlite')
+const storeSqlite = require('./store-sqlite')
+const initDatabase = storeSqlite.initDatabase
+const getDb = storeSqlite.getDb
 const UserRepository = require('./user-repository')
 const AgentRepository = require('./agent-repository')
 const OrderRepository = require('./order-repository')
@@ -21,19 +23,23 @@ const LeaveRepository = require('./leave-repository')
 const BusinessRulesRepository = require('./business-rules-repository')
 const ScheduleRepository = require('./schedule-repository')
 const AuditRepository = require('./audit-repository')
+const InquirySessionRepository = require('./inquiry-session-repository')
+const { ReportRepository } = require('./report-repository')
 
-const users = new UserRepository(store)
-const agents = new AgentRepository(store)
-const orders = new OrderRepository(store)
-const admin = new AdminRepository(store)
-const codes = new CodeRepository(store)
-const tokenUsage = new TokenUsageRepository(store)
-const teams = new TeamRepository(store)
-const teamMembers = new TeamMemberRepository(store)
-const leave = new LeaveRepository(store)
-const businessRules = new BusinessRulesRepository(store)
-const schedules = new ScheduleRepository(store)
-const audit = new AuditRepository(store)
+const users = new UserRepository(storeSqlite.store)
+const agents = new AgentRepository(storeSqlite.store)
+const orders = new OrderRepository(storeSqlite.store)
+const admin = new AdminRepository(storeSqlite.store)
+const codes = new CodeRepository(storeSqlite.store)
+const tokenUsage = new TokenUsageRepository(storeSqlite.store)
+const teams = new TeamRepository(storeSqlite.store)
+const teamMembers = new TeamMemberRepository(storeSqlite.store)
+const leave = new LeaveRepository(storeSqlite.store)
+const businessRules = new BusinessRulesRepository(storeSqlite.store)
+const schedules = new ScheduleRepository(storeSqlite.store)
+const audit = new AuditRepository(storeSqlite.store)
+const inquirySessions = new InquirySessionRepository(storeSqlite.store)
+const reports = new ReportRepository(storeSqlite.store)
 
 // 向后兼容：保留旧 users.js 的 Database 静态方法接口
 // 旧代码 require('./db/users') 仍可正常工作
@@ -44,6 +50,9 @@ module.exports = {
   initDatabase,
   getDb,
 
+  // 存储适配器（直接访问 sql.js）
+  store: storeSqlite.store,
+
   // Repository 实例（新代码使用这些）
   users,
   agents,
@@ -51,6 +60,8 @@ module.exports = {
   admin,
   codes,
   tokenUsage,
+  reports,
+  inquirySessions,
 
   // ===== 向后兼容层 =====
   // 旧代码 require('./db/users') 返回的对象有以下方法
@@ -102,6 +113,9 @@ module.exports = {
   businessRules,
   schedules,
   audit,
+
+  // 帮你赚钱 - Inquiry Session
+  inquirySessions,
 
   // 工具函数
   formatUserResponse,
