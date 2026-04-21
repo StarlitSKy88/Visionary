@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge, Spinner } from '@/components/ui/misc'
-import { ArrowLeft, Share2, Copy, CheckCircle2, Lock, Unlock, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Share2, Copy, CheckCircle2, Lock, Unlock, ChevronRight, Sun, Moon } from 'lucide-react'
+import { useTheme, getPersonalityColors, isSecretPersonality } from '@/hooks/useTheme'
 
 interface Question {
   id: number
@@ -55,6 +56,7 @@ export default function SBTIPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const lang = 'zh' // TODO: 从路由获取
+  const { theme, toggleTheme, mounted } = useTheme()
 
   const [sessionId, setSessionId] = useState<number | null>(null)
   const [currentQuestionId, setCurrentQuestionId] = useState<number>(0)
@@ -70,6 +72,10 @@ export default function SBTIPage() {
   const [error, setError] = useState('')
   const [phase, setPhase] = useState<'test' | 'result'>('test')
   const [copied, setCopied] = useState(false)
+
+  // 获取人格专属颜色
+  const personalityColors = personality ? getPersonalityColors(personality.id) : null
+  const isSecret = personality ? isSecretPersonality(personality.id) : false
 
   const refCode = searchParams.get('ref')
 
@@ -233,20 +239,27 @@ export default function SBTIPage() {
   const progress = Object.keys(answers).length
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur border-b">
+      <header className="sticky top-0 z-10 backdrop-blur border-b" style={{ backgroundColor: 'rgba(var(--bg-elevated), 0.8)', borderColor: 'var(--border)' }}>
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => router.back()}
-            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="p-2 rounded-full transition-colors"
+            style={{ hover: { backgroundColor: 'var(--bg-secondary)' } }}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5" style={{ color: 'var(--text-primary)' }} />
           </button>
-          <h1 className="text-lg font-semibold">
+          <h1 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
             {lang === 'en' ? 'SBTI Test' : '山海经老板测试'}
           </h1>
-          <div className="w-10" />
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full transition-colors"
+            style={{ hover: { backgroundColor: 'var(--bg-secondary)' } }}
+          >
+            {mounted && (theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />)}
+          </button>
         </div>
       </header>
 
@@ -255,15 +268,15 @@ export default function SBTIPage() {
         {loading && !currentQuestion && !error && (
           <div className="flex flex-col items-center justify-center py-20">
             <Spinner className="w-8 h-8" />
-            <p className="mt-4 text-slate-600 dark:text-slate-400">
+            <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>
               {lang === 'en' ? 'Loading...' : '正在启动测试...'}
             </p>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6">
-            <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+          <div className="sbti-card p-4 mb-6" style={{ borderColor: 'var(--accent-danger)' }}>
+            <p className="text-sm" style={{ color: 'var(--accent-danger)' }}>{error}</p>
           </div>
         )}
 
@@ -271,27 +284,25 @@ export default function SBTIPage() {
           <>
             {/* Progress */}
             <div className="mb-6">
-              <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400 mb-2">
+              <div className="flex items-center justify-between text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
                 <span>{progress} / {totalQuestions}</span>
                 <span>{Math.round((progress / totalQuestions) * 100)}%</span>
               </div>
-              <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+              <div className="progress-bar">
                 <div
-                  className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-300"
+                  className="progress-fill"
                   style={{ width: `${(progress / totalQuestions) * 100}%` }}
                 />
               </div>
             </div>
 
             {/* Question Card */}
-            <Card className="p-6 mb-6">
+            <div className="sbti-card p-6 mb-6">
               <div className="flex items-start gap-3 mb-4">
-                <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
-                  <span className="text-amber-600 dark:text-amber-400 font-semibold">
-                    {currentQuestion.id}
-                  </span>
+                <div className="sbti-option-key" style={{ background: 'var(--accent-gold)', color: 'var(--bg-primary)' }}>
+                  <span style={{ fontWeight: 700 }}>{currentQuestion.id}</span>
                 </div>
-                <p className="text-lg font-medium leading-relaxed">
+                <p className="text-lg font-medium leading-relaxed" style={{ color: 'var(--text-primary)' }}>
                   {currentQuestion.question}
                 </p>
               </div>
@@ -302,32 +313,19 @@ export default function SBTIPage() {
                   <button
                     key={option.key}
                     onClick={() => handleAnswer(currentQuestion.id, option.key)}
-                    className={`w-full p-4 rounded-xl border-2 text-left transition-all
-                      ${answers[currentQuestion.id] === option.key
-                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
-                        : 'border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-600'
-                      }
-                      ${loading ? 'opacity-50 pointer-events-none' : ''}
-                    `}
+                    className={`sbti-option ${answers[currentQuestion.id] === option.key ? 'selected' : ''}`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
-                        ${answers[currentQuestion.id] === option.key
-                          ? 'bg-amber-500 text-white'
-                          : 'bg-slate-100 dark:bg-slate-800'
-                        }
-                      `}>
-                        <span className="text-sm font-medium">{option.key}</span>
-                      </div>
-                      <span className="text-base">{option.text}</span>
+                    <div className="sbti-option-key">
+                      <span>{option.key}</span>
                     </div>
+                    <span className="sbti-option-text">{option.text}</span>
                   </button>
                 ))}
               </div>
-            </Card>
+            </div>
 
             {/* Navigation hint */}
-            <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+            <div className="flex items-center justify-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
               <ChevronRight className="w-4 h-4" />
               <span>{lang === 'en' ? 'Tap to continue' : '点击选项继续'}</span>
             </div>
@@ -339,75 +337,76 @@ export default function SBTIPage() {
             {/* Result Card */}
             <div className="text-center mb-6">
               <div className="text-6xl mb-4">{card.emoji}</div>
-              <h2 className="text-2xl font-bold mb-2">
+              <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
                 {personality.name}
               </h2>
-              <p className="text-lg text-amber-600 dark:text-amber-400 font-medium">
+              <p className="text-lg font-medium personality-name">
                 {personality.title}
               </p>
             </div>
 
             {/* Slogan */}
-            <Card className="p-6 mb-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800">
-              <p className="text-xl leading-relaxed text-center font-medium">
+            <div className="sbti-card p-6 mb-6 personality-accent" style={{ '--card-accent': personalityColors?.primary } as React.CSSProperties}>
+              <p className="text-xl leading-relaxed text-center font-classic" style={{ color: 'var(--text-primary)' }}>
                 "{card.slogan}"
               </p>
-            </Card>
+            </div>
 
             {/* Tags */}
             <div className="flex flex-wrap justify-center gap-2 mb-6">
               {card.tags.map((tag, i) => (
-                <Badge key={i} variant="secondary" className="px-3 py-1">
+                <span key={i} className="sbti-tag">
                   {tag.icon} {tag.text}
-                </Badge>
+                </span>
               ))}
             </div>
 
             {/* Money Score */}
-            <Card className="p-4 mb-6">
+            <div className="sbti-card p-4 mb-6">
               <div className="flex items-center justify-between">
-                <span className="text-slate-600 dark:text-slate-400">
+                <span style={{ color: 'var(--text-secondary)' }}>
                   {lang === 'en' ? 'Money-making Potential' : '赚钱潜力'}
                 </span>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <span
                       key={star}
-                      className={`text-xl ${star <= card.money_score ? 'text-amber-500' : 'text-slate-300 dark:text-slate-600'}`}
+                      className="text-xl"
+                      style={{ color: star <= card.money_score ? 'var(--accent-gold)' : 'var(--border)' }}
                     >
                       ★
                     </span>
                   ))}
                 </div>
               </div>
-            </Card>
+            </div>
 
             {/* Share Status */}
-            <Card className="p-6 mb-6">
+            <div className="sbti-card p-6 mb-6">
               <div className="text-center mb-4">
                 {shareStatus?.unlocked ? (
                   <div className="flex flex-col items-center gap-2">
-                    <Unlock className="w-12 h-12 text-green-500" />
-                    <p className="text-green-600 dark:text-green-400 font-medium">
+                    <Unlock className="w-12 h-12" style={{ color: 'var(--accent-success)' }} />
+                    <p className="font-medium" style={{ color: 'var(--accent-success)' }}>
                       {lang === 'en' ? 'Report Unlocked!' : '报告已解锁！'}
                     </p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2">
-                    <Lock className="w-12 h-12 text-slate-400" />
-                    <p className="text-slate-600 dark:text-slate-400">
+                    <Lock className="w-12 h-12" style={{ color: 'var(--text-muted)' }} />
+                    <p style={{ color: 'var(--text-secondary)' }}>
                       {lang === 'en'
                         ? `Share to unlock report (${shareStatus?.remaining || 10} more)`
                         : `分享解锁报告（还差${shareStatus?.remaining || 10}次）`
                       }
                     </p>
-                    <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full mt-2">
+                    <div className="w-full h-2 rounded-full mt-2" style={{ background: 'var(--bg-secondary)' }}>
                       <div
-                        className="h-full bg-green-500 rounded-full transition-all"
-                        style={{ width: `${((shareStatus?.opens || 0) / 10) * 100}%` }}
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${((shareStatus?.opens || 0) / 10) * 100}%`, background: 'var(--accent-success)' }}
                       />
                     </div>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
                       {shareStatus?.opens || 0} / 10 {lang === 'en' ? 'shares' : '次分享'}
                     </p>
                   </div>
@@ -424,7 +423,7 @@ export default function SBTIPage() {
                     onClick={() => copyShareText(style)}
                   >
                     {copied ? (
-                      <CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />
+                      <CheckCircle2 className="w-4 h-4 mr-2" style={{ color: 'var(--accent-success)' }} />
                     ) : (
                       <Copy className="w-4 h-4 mr-2" />
                     )}
@@ -434,8 +433,8 @@ export default function SBTIPage() {
               </div>
 
               {/* Share Link */}
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-sm text-slate-500 mb-2">
+              <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+                <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
                   {lang === 'en' ? 'Or share this link:' : '或分享链接：'}
                 </p>
                 <div className="flex gap-2">
@@ -443,7 +442,8 @@ export default function SBTIPage() {
                     type="text"
                     value={shareUrl}
                     readOnly
-                    className="flex-1 px-3 py-2 text-sm bg-slate-100 dark:bg-slate-800 rounded-lg border"
+                    className="flex-1 px-3 py-2 text-sm rounded-lg border"
+                    style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}
                   />
                   <Button
                     size="sm"
@@ -453,11 +453,11 @@ export default function SBTIPage() {
                       setTimeout(() => setCopied(false), 2000)
                     }}
                   >
-                    {copied ? <CheckCircle2 className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+                    {copied ? <CheckCircle2 className="w-4 h-4" style={{ color: 'var(--accent-success)' }} /> : <Share2 className="w-4 h-4" />}
                   </Button>
                 </div>
               </div>
-            </Card>
+            </div>
 
             {/* Generate Report Button */}
             {shareStatus?.unlocked && (
@@ -465,6 +465,7 @@ export default function SBTIPage() {
                 className="w-full"
                 size="lg"
                 onClick={() => router.push(`/${lang}/sbti/report/${sessionId}`)}
+                style={{ background: 'var(--accent-primary)', color: 'white' }}
               >
                 {lang === 'en' ? 'View Full Report' : '查看完整报告'}
               </Button>
@@ -476,6 +477,7 @@ export default function SBTIPage() {
                 className="w-full"
                 size="lg"
                 variant="outline"
+                style={{ borderColor: 'var(--accent-gold)', color: 'var(--accent-gold)' }}
               >
                 {lang === 'en' ? 'Pay ¥99 to Unlock' : '付费 ¥99 解锁报告'}
               </Button>
