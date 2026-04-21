@@ -15,7 +15,7 @@ const TASK_ROUTES = {
   // 需求理解 - 需要强推理能力
   'understand-demand': {
     provider: 'minimax',
-    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
     fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
     temperature: 0.3,
     maxTokens: 1500,
@@ -23,7 +23,7 @@ const TASK_ROUTES = {
   // 行业情报 - 需要广泛知识
   'gather-intel': {
     provider: 'minimax',
-    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
     fallback: { provider: 'openrouter', model: OR_MODELS.nemotron },
     temperature: 0.5,
     maxTokens: 1500,
@@ -31,7 +31,7 @@ const TASK_ROUTES = {
   // 根因分析 - 需要深度推理
   'root-cause': {
     provider: 'minimax',
-    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
     fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
     temperature: 0.3,
     maxTokens: 1500,
@@ -39,7 +39,7 @@ const TASK_ROUTES = {
   // 方案设计 - 需要创造力 + 推理
   'design-solution': {
     provider: 'minimax',
-    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
     fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
     temperature: 0.5,
     maxTokens: 2000,
@@ -47,31 +47,76 @@ const TASK_ROUTES = {
   // 辩论优化 - 需要批判性思维
   'debate-optimize': {
     provider: 'minimax',
-    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
     fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
     temperature: 0.4,
-    maxTokens: 1500,
+    maxTokens: 4000,
   },
   // 评分 - 需要精准评估
   'evaluate-score': {
     provider: 'minimax',
-    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
     fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
     temperature: 0.2,
-    maxTokens: 800,
+    maxTokens: 1500,
+  },
+  // 辩论批评 - 评价其他Agent方案
+  'debate-critique': {
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
+    fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
+    temperature: 0.3,
+    maxTokens: 4000,
+  },
+  // 辩论投票 - 对各方案投票
+  'debate-vote': {
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
+    fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
+    temperature: 0.3,
+    maxTokens: 2000,
   },
   // 聊天 - 快速响应
   'chat': {
     provider: 'minimax',
-    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
     fallback: { provider: 'openrouter', model: OR_MODELS.gemini },
     temperature: 0.7,
     maxTokens: 1000,
   },
+  // SBTI Agent 专用路由 - 需要更大的 maxTokens
+  'market-analyst': {
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
+    fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
+    temperature: 0.4,
+    maxTokens: 4000,
+  },
+  'strategy-planner': {
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
+    fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
+    temperature: 0.4,
+    maxTokens: 4000,
+  },
+  'execution-advisor': {
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
+    fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
+    temperature: 0.4,
+    maxTokens: 4000,
+  },
+  'financial-advisor': {
+    provider: 'minimax',
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
+    fallback: { provider: 'anthropic', model: ANTHROPIC_MODELS.sonnet },
+    temperature: 0.4,
+    maxTokens: 4000,
+  },
   // 完成补全
   'complete': {
     provider: 'minimax',
-    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
     fallback: { provider: 'openrouter', model: OR_MODELS.gemini },
     temperature: 0.7,
     maxTokens: 2000,
@@ -79,7 +124,7 @@ const TASK_ROUTES = {
   // 默认
   'default': {
     provider: 'minimax',
-    model: MINIMAX_MODELS['MiniMax-Text-01'],
+    model: MINIMAX_MODELS['MiniMax-M2.7'],
     fallback: { provider: 'openrouter', model: OR_MODELS.nemotron },
     temperature: 0.7,
     maxTokens: 2000,

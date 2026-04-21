@@ -50,11 +50,31 @@ ${JSON.stringify(schema, null, 2)}
   const response = await chat(fullMessages, { ...options, temperature: 0.3 })
 
   try {
-    const jsonMatch = response.match(/\{[\s\S]*\}/)
-    if (jsonMatch) return JSON.parse(jsonMatch[0])
-    return JSON.parse(response)
+    // 去掉 markdown 代码块包装
+    let jsonStr = response.trim()
+    const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/m)
+    if (codeBlockMatch) {
+      jsonStr = codeBlockMatch[1].trim()
+    }
+    // 尝试直接解析
+    try {
+      return JSON.parse(jsonStr)
+    } catch {
+      // 如果直接解析失败，尝试提取 JSON 对象
+      const jsonMatch = jsonStr.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0])
+      }
+      // 尝试提取 JSON 数组
+      const arrayMatch = jsonStr.match(/\[[\s\S]*\]/m)
+      if (arrayMatch) {
+        return JSON.parse(arrayMatch[0])
+      }
+    }
+    // 所有解析都失败
+    throw new Error('无法解析AI返回内容')
   } catch (e) {
-    safeLog({ type: 'ai_json_parse_error', response }, '❌ JSON解析失败')
+    safeLog({ type: 'ai_json_parse_error', response: response.substring(0, 500) }, '❌ JSON解析失败')
     throw new Error('AI返回格式错误')
   }
 }

@@ -30,13 +30,13 @@ router.post('/start', async (req, res) => {
 
     // 创建 SBTI session（允许匿名，device_id 可选）
     const shareCode = generateShareCode()
-    const result = db.store.run(
+    db.store.run(
       `INSERT INTO sbti_sessions (device_id, lang, status, current_question, answers, share_code)
        VALUES (?, ?, 'active', 0, '[]', ?)`,
       [deviceId || null, lang, shareCode]
     )
 
-    const sessionId = result.lastInsertRowid
+    const sessionId = db.store.lastInsertId()
 
     // 获取第一题
     const questionnaire = getQuestionnaire()

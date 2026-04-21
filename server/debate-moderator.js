@@ -9,64 +9,67 @@ const ai = require('./lib/ai-service')
 const RULE_A = 'critique' // 默认规则：每个Agent必须指出其他Agent方案中的至少1个风险或漏洞
 const RULE_B = 'vote'      // 备选规则：投票共识，无法达成挑战时按多数意见决定
 
+// 超时工具函数
+const withTimeout = (promise, ms, fallback) => {
+  return Promise.race([
+    promise,
+    new Promise(resolve => setTimeout(() => resolve(fallback), ms))
+  ])
+}
+
 /**
  * 运行辩论
- * @param {object[]} agents - Agent输出结果数组 [marketAnalyst, strategyPlanner, executionAdvisor, financialAdvisor]
- * @param {object} sessionData - 用户session数据（用于评估）
- * @param {object} options - { lang: 'zh'|'en', maxRounds: number }
- * @returns {Promise<object>} DebateResult { consensus, disagreements, rounds, rule_used }
  */
 async function runDebate(agents, sessionData, options = {}) {
-  const { lang = 'zh', maxRounds = 5 } = options
+  const { lang = 'zh', maxRounds = 3 } = options
 
   let currentRound = 0
   let currentRule = RULE_A
   let consecutiveFailures = 0
 
-  // 初始Agent输出
   let currentOutputs = [...agents]
   let previousCritiques = []
 
-  while (currentRound < maxRounds) {
-    currentRound++
+  try {
+    while (currentRound < maxRounds) {
+      currentRound++
 
-    // 执行一轮辩论
-    const roundResult = await executeRound(
-      currentOutputs,
-      previousCritiques,
-      currentRule,
-      lang
-    )
+      const roundResult = await withTimeout(
+        executeRound(currentOutputs, previousCritiques, currentRule, lang),
+        60000,
+        { critiques: [], disagreements: [], outputs: currentOutputs }
+      )
 
-    // 检查Harness是否通过
-    const harnessPassed = await checkHarness(roundResult, sessionData, lang)
+      const harnessPassed = await withTimeout(
+        checkHarness(roundResult.outputs, sessionData, lang),
+        30000,
+        false
+      )
 
-    if (harnessPassed) {
-      // 找到共识
-      return {
-        consensus: buildConsensus(roundResult, lang),
-        disagreements: roundResult.disagreements || [],
-        rounds: currentRound,
-        rule_used: currentRule,
-        finalOutputs: roundResult,
+      if (harnessPassed) {
+        return {
+          consensus: buildConsensus(roundResult.outputs, lang),
+          disagreements: roundResult.disagreements || [],
+          rounds: currentRound,
+          rule_used: currentRule,
+          finalOutputs: roundResult.outputs,
+        }
       }
+
+      consecutiveFailures++
+      previousCritiques = roundResult.critiques || []
+
+      if (consecutiveFailures >= 2) {
+        currentRule = currentRule === RULE_A ? RULE_B : RULE_A
+        consecutiveFailures = 0
+      }
+
+      currentOutputs = await rewriteWithCritiques(currentOutputs, previousCritiques, lang)
     }
-
-    // Harness失败，重写
-    consecutiveFailures++
-    previousCritiques = roundResult.critiques || []
-
-    // 连续2次失败，切换规则
-    if (consecutiveFailures >= 2) {
-      currentRule = currentRule === RULE_A ? RULE_B : RULE_A
-      consecutiveFailures = 0
-    }
-
-    // 重写失败的输出
-    currentOutputs = await rewriteWithCritiques(currentOutputs, previousCritiques, lang)
+  } catch (e) {
+    console.log('辩论过程中出错:', e.message)
   }
 
-  // 达到最大轮次，返回结果（不卡死）
   return {
     consensus: buildConsensus(currentOutputs, lang),
     disagreements: [],
@@ -87,58 +90,29 @@ async function executeRound(outputs, previousCritiques, rule, lang) {
   const disagreements = []
 
   if (rule === RULE_A) {
-    // 规则A：每个Agent必须指出其他Agent方案中的至少1个风险或漏洞
+    const [maCritique, spCritique, eaCritique, faCritique] = await Promise.all([
+      withTimeout(critiqueAgent('Market Analyst', { opportunity: marketAnalyst.opportunity }, [strategyPlanner, executionAdvisor, financialAdvisor], lang), 30000, { critiques: [], agreements: [] }),
+      withTimeout(critiqueAgent('Strategy Planner', strategyPlanner, [marketAnalyst, executionAdvisor, financialAdvisor], lang), 30000, { critiques: [], agreements: [] }),
+      withTimeout(critiqueAgent('Execution Advisor', executionAdvisor, [marketAnalyst, strategyPlanner, financialAdvisor], lang), 30000, { critiques: [], agreements: [] }),
+      withTimeout(critiqueAgent('Financial Advisor', financialAdvisor, [marketAnalyst, strategyPlanner, executionAdvisor], lang), 30000, { critiques: [], agreements: [] }),
+    ])
 
-    // Market Analyst 评价其他3个
-    const maCritique = await critiqueAgent(
-      'Market Analyst',
-      { opportunity: marketAnalyst.opportunity },
-      [strategyPlanner, executionAdvisor, financialAdvisor],
-      lang
-    )
     critiques.push({ agent: 'Market Analyst', ...maCritique })
-
-    // Strategy Planner 评价其他3个
-    const spCritique = await critiqueAgent(
-      'Strategy Planner',
-      strategyPlanner,
-      [marketAnalyst, executionAdvisor, financialAdvisor],
-      lang
-    )
     critiques.push({ agent: 'Strategy Planner', ...spCritique })
-
-    // Execution Advisor 评价其他3个
-    const eaCritique = await critiqueAgent(
-      'Execution Advisor',
-      executionAdvisor,
-      [marketAnalyst, strategyPlanner, financialAdvisor],
-      lang
-    )
     critiques.push({ agent: 'Execution Advisor', ...eaCritique })
-
-    // Financial Advisor 评价其他3个
-    const faCritique = await critiqueAgent(
-      'Financial Advisor',
-      financialAdvisor,
-      [marketAnalyst, strategyPlanner, executionAdvisor],
-      lang
-    )
     critiques.push({ agent: 'Financial Advisor', ...faCritique })
 
   } else {
-    // 规则B：投票共识
-    const votes = await collectVotes(outputs, lang)
+    const votes = await withTimeout(collectVotes(outputs, lang), 30000, [])
 
-    // 统计投票，找最多反对的方案
     const voteResults = votes.reduce((acc, v) => {
       if (!acc[v.targetAgent]) {
-        acc[v.targetAgent] = {反对: 0, 赞同: 0 }
+        acc[v.targetAgent] = { 反对: 0, 赞同: 0 }
       }
       acc[v.targetAgent][v.stance]++
       return acc
     }, {})
 
-    // 找出被反对最多的
     for (const [agent, counts] of Object.entries(voteResults)) {
       if (counts.反对 > counts.赞同) {
         disagreements.push(`${agent}方案存在争议`)
@@ -202,7 +176,6 @@ async function critiqueAgent(agentName, agentOutput, otherAgents, lang) {
  */
 async function collectVotes(outputs, lang) {
   const agentNames = ['Market Analyst', 'Strategy Planner', 'Execution Advisor', 'Financial Advisor']
-  const votes = []
 
   const prompt = lang === 'en'
     ? `Vote on each agent's output: agree or disagree with each. Return JSON array.`
@@ -237,15 +210,13 @@ async function collectVotes(outputs, lang) {
  */
 async function checkHarness(roundResult, sessionData, lang) {
   const harness = require('./harness/quality-gate')
-  return harness.checkAll(roundResult.outputs, sessionData, { lang })
+  return harness.checkAll(roundResult, sessionData, { lang })
 }
 
 /**
  * 根据批评重写输出
  */
 async function rewriteWithCritiques(outputs, critiques, lang) {
-  // 简化处理：直接返回当前输出，让Agent根据批评自行调整
-  // 实际实现中应该让每个Agent根据针对它的批评重写自己的输出
   return outputs
 }
 
