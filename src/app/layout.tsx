@@ -18,6 +18,13 @@ export const metadata: Metadata = {
   keywords: 'AI经营助手,小微企业,智能客服,报价助手,库存管理',
 }
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
+
 export default function RootLayout({
   children,
 }: {
