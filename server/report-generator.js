@@ -1,6 +1,7 @@
 /**
  * Report Generation Service - 报告生成服务
  * 负责在支付成功后协调4个Agent生成报告
+ * 支持 SBTI 人格增强
  */
 
 const db = require('./db')
@@ -10,13 +11,17 @@ const executionAdvisor = require('./agents/execution-advisor')
 const financialAdvisor = require('./agents/financial-advisor')
 const debateModerator = require('./debate-moderator')
 const { getCheckResults } = require('./harness/quality-gate')
+const { getPersonalityById } = require('./db/sbti-personalities')
 
 /**
  * 开始生成报告
  * @param {number} reportId - 报告ID
+ * @param {object} options - { personalityId?: string }
  * @returns {Promise<object>} 生成结果
  */
-async function startGeneration(reportId) {
+async function startGeneration(reportId, options = {}) {
+  const { personalityId = null } = options
+
   const report = db.reports.getById(reportId)
   if (!report) {
     throw new Error('Report not found')
@@ -35,18 +40,27 @@ async function startGeneration(reportId) {
 
   const lang = session.lang || 'zh'
 
+  // 获取人格数据（如果有）
+  const personality = personalityId ? getPersonalityById(personalityId) : null
+
   try {
     // 更新状态为生成中
     db.reports.updateStatus(reportId, 'generating')
 
     // Step 1: P1优化 - 并行调用4个Agent（它们都基于相同sessionData，独立生成）
+    // 如果有人格数据，传递给每个Agent
     console.log('🧠 开始并行调用4个Agent生成报告...')
+    if (personality) {
+      console.log(`🎭 人格增强模式：${personality.name}（${personality.title}）`)
+    }
+
+    const agentOptions = { lang, personality }
 
     const [maResult, spResult, eaResult, faResult] = await Promise.all([
-      marketAnalyst.generate(sessionData, { lang }),
-      strategyPlanner.generate(sessionData, {}, { lang }),  // 空对象作为占位
-      executionAdvisor.generate(sessionData, {}, { lang }), // 空对象作为占位
-      financialAdvisor.generate(sessionData, {}, {}, { lang }), // 空对象作为占位
+      marketAnalyst.generate(sessionData, agentOptions),
+      strategyPlanner.generate(sessionData, {}, agentOptions),
+      executionAdvisor.generate(sessionData, {}, agentOptions),
+      financialAdvisor.generate(sessionData, {}, {}, agentOptions),
     ])
 
     console.log('✅ Market Analyst 完成')

@@ -1,6 +1,7 @@
 /**
  * Strategy Planner Agent - 策略规划Agent
  * 基于市场分析结果，制定差异化竞争策略
+ * 结合人格类型给出个性化策略建议
  */
 
 const ai = require('../lib/ai-service')
@@ -9,11 +10,11 @@ const ai = require('../lib/ai-service')
  * 生成策略规划
  * @param {object} sessionData - 7维度答案
  * @param {object} marketAnalysis - 市场分析结果
- * @param {object} options - { lang: 'zh'|'en' }
+ * @param {object} options - { lang: 'zh'|'en', personality: object }
  * @returns {Promise<object>} StrategyPlan
  */
 async function generate(sessionData, marketAnalysis, options = {}) {
-  const { lang = 'zh' } = options
+  const { lang = 'zh', personality = null } = options
   const { dimension_answers } = sessionData
 
   // 从dimension_answers构建用户数据上下文
@@ -24,7 +25,7 @@ async function generate(sessionData, marketAnalysis, options = {}) {
     }
   }
 
-  const prompt = buildStrategyPrompt(userData, marketAnalysis, lang)
+  const prompt = buildStrategyPrompt(userData, marketAnalysis, lang, personality)
 
   // P2: 量化标注
   const schema = {
@@ -100,7 +101,7 @@ async function generate(sessionData, marketAnalysis, options = {}) {
 /**
  * 构建策略规划提示词
  */
-function buildStrategyPrompt(userData, marketAnalysis, lang) {
+function buildStrategyPrompt(userData, marketAnalysis, lang, personality = null) {
   const t = lang === 'en' ? {
     intro: 'Based on the user business data and market analysis, formulate a differentiated strategy:',
     userData: 'User Business Data',
@@ -128,8 +129,22 @@ function buildStrategyPrompt(userData, marketAnalysis, lang) {
     `竞争格局：${marketAnalysis.competitive_landscape || '未知'}`,
   ].join('\n')
 
+  // 人格增强：如果有人格数据，结合人格特点给出个性化策略
+  let personalitySection = ''
+  if (personality) {
+    personalitySection = lang === 'en'
+      ? `\n\nPersonality Type: ${personality.name} (${personality.title})
+Suitable strategy style: ${personality.good_for}
+Strategy pitfalls to avoid: ${personality.avoid}
+Note: Tailor the strategy to leverage this personality type strengths.`
+      : `\n\n人格类型：${personality.name}（${personality.title}）
+适合的策略风格：${personality.good_for}
+需要避免的策略陷阱：${personality.avoid}
+提示：请结合此人格类型的优势来制定策略。`
+  }
+
   // P2: 输出包含置信度和数据来源
-  return `${t.intro}\n\n${t.userData}:\n${userInfo}\n\n${t.marketAnalysis}:\n${marketInfo}\n\n${t.output}\n{
+  return `${t.intro}\n\n${t.userData}:\n${userInfo}\n\n${t.marketAnalysis}:\n${marketInfo}${personalitySection}\n\n${t.output}\n{
   "core_positioning": "...",
   "core_positioning_confidence": 0.8,
   "core_positioning_source": "${lang === 'zh' ? '基于用户数据和竞争分析' : 'Based on user data and competition analysis'}",

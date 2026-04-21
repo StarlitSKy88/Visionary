@@ -1,6 +1,7 @@
 /**
  * Financial Advisor Agent - 财务分析Agent
  * 结合用户实际情况，给出投入产出分析
+ * 结合人格类型给出个性化财务建议
  */
 
 const ai = require('../lib/ai-service')
@@ -10,11 +11,11 @@ const ai = require('../lib/ai-service')
  * @param {object} sessionData - 7维度答案
  * @param {object} strategyPlan - 策略规划结果
  * @param {object} executionPlan - 执行计划结果
- * @param {object} options - { lang: 'zh'|'en' }
+ * @param {object} options - { lang: 'zh'|'en', personality: object }
  * @returns {Promise<object>} FinancialPlan
  */
 async function generate(sessionData, strategyPlan, executionPlan, options = {}) {
-  const { lang = 'zh' } = options
+  const { lang = 'zh', personality = null } = options
   const { dimension_answers } = sessionData
 
   // 构建用户数据上下文
@@ -25,7 +26,7 @@ async function generate(sessionData, strategyPlan, executionPlan, options = {}) 
     }
   }
 
-  const prompt = buildFinancialPrompt(userData, strategyPlan, executionPlan, lang)
+  const prompt = buildFinancialPrompt(userData, strategyPlan, executionPlan, lang, personality)
 
   // P2: 量化标注
   const schema = {
@@ -101,7 +102,7 @@ async function generate(sessionData, strategyPlan, executionPlan, options = {}) 
 /**
  * 构建财务分析提示词
  */
-function buildFinancialPrompt(userData, strategyPlan, executionPlan, lang) {
+function buildFinancialPrompt(userData, strategyPlan, executionPlan, lang, personality = null) {
   const t = lang === 'en' ? {
     intro: 'Provide financial analysis based on user actual situation:',
     userData: 'User Actual Situation',
@@ -136,8 +137,22 @@ function buildFinancialPrompt(userData, strategyPlan, executionPlan, lang) {
     `所需资源：${executionPlan.resource_needed || '未知'}`,
   ].join('\n')
 
+  // 人格增强：如果有人格数据，结合人格特点给出个性化财务建议
+  let personalitySection = ''
+  if (personality) {
+    personalitySection = lang === 'en'
+      ? `\n\nPersonality Type: ${personality.name} (${personality.title})
+Financial management style: ${personality.good_for}
+Financial pitfalls to avoid: ${personality.avoid}
+Note: Provide financial recommendations suitable for this personality type.`
+      : `\n\n人格类型：${personality.name}（${personality.title}）
+财务管理风格：${personality.good_for}
+需要避免的财务陷阱：${personality.avoid}
+提示：请给出适合此人格类型的财务建议。`
+  }
+
   // P2: 输出包含置信度和数据来源
-  return `${t.intro}\n\n${t.userData}:\n${userInfo}\n\n${t.strategy}:\n${strategyInfo}\n\n${t.execution}:\n${execInfo}\n\n${t.requirement}\n\n${t.output}\n{
+  return `${t.intro}\n\n${t.userData}:\n${userInfo}\n\n${t.strategy}:\n${strategyInfo}\n\n${t.execution}:\n${execInfo}${personalitySection}\n\n${t.requirement}\n\n${t.output}\n{
   "investment_estimate": "...",
   "investment_confidence": 0.8,
   "investment_source": "${lang === 'zh' ? '基于用户提供的财务数据' : 'Based on user-provided financial data'}",

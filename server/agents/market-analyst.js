@@ -1,6 +1,7 @@
 /**
  * Market Analyst Agent - 市场分析Agent
  * 分析用户提供的7维度数据，输出市场机会、客户定位、市场趋势和竞争格局
+ * 结合人格类型给出个性化市场建议
  */
 
 const ai = require('../lib/ai-service')
@@ -9,11 +10,11 @@ const search = require('../lib/search-service')
 /**
  * 生成市场分析
  * @param {object} sessionData - 包含7维度答案的session数据
- * @param {object} options - { lang: 'zh'|'en' }
+ * @param {object} options - { lang: 'zh'|'en', personality: object }
  * @returns {Promise<object>} MarketAnalysis
  */
 async function generate(sessionData, options = {}) {
-  const { lang = 'zh' } = options
+  const { lang = 'zh', personality = null } = options
   const { dimension_answers, lang: sessionLang } = sessionData
 
   // 从dimension_answers构建用户数据上下文
@@ -35,7 +36,7 @@ async function generate(sessionData, options = {}) {
     }
   }
 
-  const prompt = buildAnalysisPrompt(userData, lang || sessionLang, industryIntel)
+  const prompt = buildAnalysisPrompt(userData, lang || sessionLang, industryIntel, personality)
 
   // P2: 量化标注 - 添加置信度和数据来源
   const schema = {
@@ -176,8 +177,9 @@ function extractIndustryKeyword(userData) {
  * @param {object} userData - 用户数据
  * @param {string} lang - 语言
  * @param {object} industryIntel - T1: 搜索的行业情报（可选）
+ * @param {object} personality - 人格数据（可选）
  */
-function buildAnalysisPrompt(userData, lang, industryIntel = null) {
+function buildAnalysisPrompt(userData, lang, industryIntel = null, personality = null) {
   const t = lang === 'en' ? {
     intro: 'Based on the following user-provided information and real-time industry intelligence, analyze the market:',
     location: 'Store Location',
@@ -242,6 +244,20 @@ function buildAnalysisPrompt(userData, lang, industryIntel = null) {
   // T1: 如果有行业情报，添加到提示词中
   if (industryIntel && industryIntel.summary) {
     parts.push(`\n${t.industryIntel}：\n${industryIntel.summary}`)
+  }
+
+  // 人格增强：如果有人格数据，结合人格特点给出个性化建议
+  if (personality) {
+    const personalitySection = lang === 'en'
+      ? `\n\nPersonality Type: ${personality.name} (${personality.title})
+Suitable for: ${personality.good_for}
+Avoid: ${personality.avoid}
+Note: When analyzing market opportunities, consider how this personality type can best leverage their strengths.`
+      : `\n\n人格类型：${personality.name}（${personality.title}）
+适合的赚钱方式：${personality.good_for}
+需要避免的：${personality.avoid}
+提示：分析市场机会时，请考虑这种人格类型如何发挥自身优势。`
+    parts.push(personalitySection)
   }
 
   // P2: 要求输出置信度和数据来源

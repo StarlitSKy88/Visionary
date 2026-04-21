@@ -1,6 +1,7 @@
 /**
  * Execution Advisor Agent - 执行顾问Agent
  * 将策略转化为1-2步可操作的具体动作
+ * 结合人格类型给出个性化执行建议
  */
 
 const ai = require('../lib/ai-service')
@@ -9,11 +10,11 @@ const ai = require('../lib/ai-service')
  * 生成执行计划
  * @param {object} sessionData - 7维度答案
  * @param {object} strategyPlan - 策略规划结果
- * @param {object} options - { lang: 'zh'|'en' }
+ * @param {object} options - { lang: 'zh'|'en', personality: object }
  * @returns {Promise<object>} ExecutionPlan
  */
 async function generate(sessionData, strategyPlan, options = {}) {
-  const { lang = 'zh' } = options
+  const { lang = 'zh', personality = null } = options
   const { dimension_answers } = sessionData
 
   // 构建用户数据上下文
@@ -24,7 +25,7 @@ async function generate(sessionData, strategyPlan, options = {}) {
     }
   }
 
-  const prompt = buildExecutionPrompt(userData, strategyPlan, lang)
+  const prompt = buildExecutionPrompt(userData, strategyPlan, lang, personality)
 
   // P2: 量化标注
   const schema = {
@@ -104,7 +105,7 @@ async function generate(sessionData, strategyPlan, options = {}) {
  * 构建执行计划提示词
  * 每个建议必须是1-2步可操作的具体动作
  */
-function buildExecutionPrompt(userData, strategyPlan, lang) {
+function buildExecutionPrompt(userData, strategyPlan, lang, personality = null) {
   const t = lang === 'en' ? {
     intro: 'Transform the strategy into 1-2 step actionable items based on user actual situation:',
     userData: 'User Actual Situation',
@@ -133,8 +134,22 @@ function buildExecutionPrompt(userData, strategyPlan, lang) {
     `渠道策略：${strategyPlan.channel_strategy || '未知'}`,
   ].join('\n')
 
+  // 人格增强：如果有人格数据，结合人格特点给出个性化执行建议
+  let personalitySection = ''
+  if (personality) {
+    personalitySection = lang === 'en'
+      ? `\n\nPersonality Type: ${personality.name} (${personality.title})
+Suitable execution approach: ${personality.good_for}
+Execution pitfalls to avoid: ${personality.avoid}
+Note: Recommend execution methods that suit this personality type.`
+      : `\n\n人格类型：${personality.name}（${personality.title}）
+适合的执行方式：${personality.good_for}
+需要避免的执行陷阱：${personality.avoid}
+提示：请推荐适合此人格类型的执行方式。`
+  }
+
   // P2: 输出包含置信度和数据来源
-  return `${t.intro}\n\n${t.userData}:\n${userInfo}\n\n${t.strategy}:\n${strategyInfo}\n\n${t.requirement}\n\n${t.output}\n{
+  return `${t.intro}\n\n${t.userData}:\n${userInfo}\n\n${t.strategy}:\n${strategyInfo}${personalitySection}\n\n${t.requirement}\n\n${t.output}\n{
   "quick_wins": ["...（具体1-2步动作）", "..."],
   "quick_wins_confidence": 0.85,
   "quick_wins_source": "${lang === 'zh' ? '基于用户痛点和资源' : 'Based on user pain points and resources'}",
