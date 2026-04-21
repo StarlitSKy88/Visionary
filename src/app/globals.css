@@ -334,6 +334,35 @@
   .dark .sbti-tag {
     background: var(--bg-elevated);
   }
+
+  /* ========== 交互状态 ========== */
+  .hover-lift {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .sbti-option:hover {
+    border-color: var(--accent-primary);
+    background: var(--bg-secondary);
+  }
+
+  .sbti-card:hover {
+    box-shadow: var(--shadow-glow), var(--shadow);
+  }
+
+  /* 按钮 hover 效果 */
+  .btn-hover:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+
+  .btn-hover:active {
+    transform: scale(0.98);
+  }
 }
 
 @layer utilities {

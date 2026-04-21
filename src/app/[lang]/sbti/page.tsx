@@ -245,8 +245,7 @@ export default function SBTIPage() {
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => router.back()}
-            className="p-2 rounded-full transition-colors"
-            style={{ hover: { backgroundColor: 'var(--bg-secondary)' } }}
+            className="p-2 rounded-full hover-lift"
           >
             <ArrowLeft className="w-5 h-5" style={{ color: 'var(--text-primary)' }} />
           </button>
@@ -255,8 +254,7 @@ export default function SBTIPage() {
           </h1>
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full transition-colors"
-            style={{ hover: { backgroundColor: 'var(--bg-secondary)' } }}
+            className="p-2 rounded-full hover-lift"
           >
             {mounted && (theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />)}
           </button>
