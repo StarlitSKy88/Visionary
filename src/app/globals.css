@@ -363,6 +363,33 @@
   .btn-hover:active {
     transform: scale(0.98);
   }
+
+  /* Focus Visible Ring - 无障碍键盘导航 */
+  .focus-visible-ring:focus-visible {
+    outline: 2px solid var(--accent-gold);
+    outline-offset: 2px;
+  }
+
+  /* 减少动画 - 支持 prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    .hover-lift,
+    .animate-fade-in,
+    .animate-scale-in,
+    .animate-glow,
+    .animate-card {
+      transition: none !important;
+      animation: none !important;
+    }
+
+    .hover-lift:hover {
+      transform: none;
+    }
+
+    .btn-hover:hover,
+    .btn-hover:active {
+      transform: none;
+    }
+  }
 }
 
 @layer utilities {

@@ -245,7 +245,8 @@ export default function SBTIPage() {
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => router.back()}
-            className="p-2 rounded-full hover-lift"
+            className="p-2 rounded-full hover-lift focus-visible-ring"
+            aria-label={lang === 'en' ? 'Go back' : '返回'}
           >
             <ArrowLeft className="w-5 h-5" style={{ color: 'var(--text-primary)' }} />
           </button>
@@ -254,7 +255,8 @@ export default function SBTIPage() {
           </h1>
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full hover-lift"
+            className="p-2 rounded-full hover-lift focus-visible-ring"
+            aria-label={theme === 'dark' ? (lang === 'en' ? 'Switch to light mode' : '切换到亮色模式') : (lang === 'en' ? 'Switch to dark mode' : '切换到暗色模式')}
           >
             {mounted && (theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />)}
           </button>
@@ -264,11 +266,12 @@ export default function SBTIPage() {
       <main className="max-w-lg mx-auto px-4 py-6">
         {/* 初始加载状态 */}
         {loading && !currentQuestion && !error && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Spinner className="w-8 h-8" />
+          <div className="flex flex-col items-center justify-center py-20" role="status" aria-live="polite">
+            <Spinner className="w-8 h-8" aria-hidden="true" />
             <p className="mt-4" style={{ color: 'var(--text-secondary)' }}>
               {lang === 'en' ? 'Loading...' : '正在启动测试...'}
             </p>
+            <span className="sr-only">{lang === 'en' ? 'Loading test questions...' : '正在加载测试题目...'}</span>
           </div>
         )}
 
@@ -417,8 +420,9 @@ export default function SBTIPage() {
                   <Button
                     key={style}
                     variant="outline"
-                    className="w-full justify-start"
+                    className="w-full justify-start focus-visible-ring"
                     onClick={() => copyShareText(style)}
+                    aria-label={lang === 'en' ? `Copy ${style} share text` : `复制${style}分享文案`}
                   >
                     {copied ? (
                       <CheckCircle2 className="w-4 h-4 mr-2" style={{ color: 'var(--accent-success)' }} />
