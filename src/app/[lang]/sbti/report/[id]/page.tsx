@@ -185,7 +185,7 @@ export default function SBTIReportPage() {
     }
   }
 
-  const t = (zh: string, en: string) => lang === 'en' ? en : zh
+  const t = (zh: string, _en: string) => zh
 
   if (loading) {
     return (

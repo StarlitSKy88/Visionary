@@ -3,113 +3,39 @@
 @tailwind utilities;
 
 /* ========================================
-   SBTI Design System - Dual Theme
-   亮色模式：墨韵新生 (#f5f3ef)
-   暗色模式：异兽觉醒 (#0d0d0d)
+   SBTI 山海经老板测试 - 反AI设计系统
    ======================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;700&display=swap');
 
 @layer base {
   :root,
   .light-mode {
-    /* ========== SBTI 亮色模式 ========== */
+    /* 亮色模式 */
     --bg-primary: #f5f3ef;
     --bg-secondary: #ebe8e0;
     --bg-elevated: #ffffff;
-    --bg-card: #ffffff;
-
     --text-primary: #1a1a1a;
     --text-secondary: #4a4a4a;
     --text-muted: #8a8a8a;
-
     --accent-primary: #2d4a3e;
     --accent-gold: #c9a962;
     --accent-danger: #c73e3a;
-    --accent-success: #3d6b4f;
-    --accent-warning: #b8860b;
-
     --border: #d4d0c8;
-    --border-accent: #c9a962;
-
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
-    --shadow: 0 4px 16px rgba(0,0,0,0.08);
-    --shadow-md: 0 8px 32px rgba(0,0,0,0.1);
-    --shadow-lg: 0 16px 48px rgba(0,0,0,0.12);
-    --shadow-glow: 0 0 20px rgba(201,169,98,0.3);
-
-    --progress-gradient: linear-gradient(90deg, #2d4a3e, #c9a962);
-    --secret-glow: 0 0 30px rgba(199,62,58,0.4);
-
-    /* ========== Shadcn兼容变量 ========== */
-    --background: 40 20% 95%;
-    --foreground: 0 0% 10%;
-    --card: 40 20% 98%;
-    --card-foreground: 0 0% 10%;
-    --primary: 160 25% 25%;
-    --primary-foreground: 40 20% 98%;
-    --secondary: 40 15% 90%;
-    --secondary-foreground: 0 0% 10%;
-    --muted: 40 15% 90%;
-    --muted-foreground: 0 0% 40%;
-    --accent: 40 30% 55%;
-    --accent-foreground: 0 0% 10%;
-    --destructive: 0 60% 45%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 40 15% 82%;
-    --input: 40 15% 90%;
-    --ring: 160 25% 25%;
-    --radius: 1rem;
   }
 
   .dark {
-    /* ========== SBTI 暗色模式 ========== */
-    --bg-primary: #0d0d0d;
-    --bg-secondary: #1a1a1f;
-    --bg-elevated: #242428;
-    --bg-card: #1a1a1f;
-
-    --text-primary: #f5f3ef;
-    --text-secondary: #b8b5ad;
-    --text-muted: #6a6a6a;
-
-    --accent-primary: #3a5a8a;
-    --accent-gold: #d4af37;
-    --accent-danger: #c73e3a;
-    --accent-success: #4a8a6a;
-    --accent-warning: #d4af37;
-
-    --border: #3a3a3f;
-    --border-accent: #d4af37;
-
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
-    --shadow: 0 4px 16px rgba(0,0,0,0.4);
-    --shadow-md: 0 8px 32px rgba(0,0,0,0.5);
-    --shadow-lg: 0 16px 48px rgba(0,0,0,0.6);
-    --shadow-glow: 0 0 20px rgba(212,175,55,0.3);
-    --secret-glow: 0 0 40px rgba(199,62,58,0.5);
-
-    --progress-gradient: linear-gradient(90deg, #3a5a8a, #d4af37);
-
-    /* ========== Shadcn兼容变量 ========== */
-    --background: 0 0% 5%;
-    --foreground: 40 20% 95%;
-    --card: 0 0% 10%;
-    --card-foreground: 40 20% 95%;
-    --primary: 210 45% 40%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 45 60% 50%;
-    --accent-foreground: 0 0% 10%;
-    --destructive: 0 60% 45%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 20%;
-    --input: 0 0% 15%;
-    --ring: 210 45% 40%;
-    --radius: 1rem;
+    /* 暗色模式 - 深墨绿 */
+    --bg-primary: #0a1210;
+    --bg-secondary: #0f1a15;
+    --bg-elevated: #141f1a;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
+    --accent-primary: #14b8a6;
+    --accent-gold: #14b8a6;
+    --accent-danger: #dc2626;
+    --border: #1e3a32;
   }
 
   * {
@@ -119,343 +45,237 @@
   body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-weight: 400;
+    font-family: 'Noto Serif SC', serif;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.3s ease, color 0.3s ease;
     min-height: 100dvh;
-    font-size: 16px;
+    overflow-x: hidden;
   }
 
-  html {
-    scroll-behavior: smooth;
+  /* 宣纸纹理背景 */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
+      radial-gradient(ellipse at 20% 30%, rgba(20,184,166,0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(220,38,38,0.03) 0%, transparent 50%);
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: -1;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-weight: 700;
-    line-height: 1.2;
-    color: var(--text-primary);
+  /* 暗角色效果 */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%);
+    pointer-events: none;
+    z-index: 100;
   }
 
-  h1 { font-size: 3rem; letter-spacing: -0.02em; }
-  h2 { font-size: 2rem; letter-spacing: -0.01em; }
-  h3 { font-size: 1.5rem; }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: var(--bg-secondary); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-  ::selection {
-    background-color: rgba(201, 169, 98, 0.3);
-    color: var(--text-primary);
+  /* 墨迹印刷模糊效果 */
+  h1, h2, h3, p, span {
+    text-shadow: 0.5px 0.5px 0.5px rgba(0,0,0,0.1);
   }
 }
 
 @layer components {
-  /* ========== SBTI 卡片 ========== */
+  /* 卡片 - 半透明墨色 + 内阴影 */
   .sbti-card {
-    background-color: var(--bg-elevated);
-    border-radius: 1rem;
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
-    transition: all 0.2s ease;
+    background: rgba(0, 0, 0, 0.27);
+    backdrop-filter: blur(8px);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-out;
   }
 
   .sbti-card:hover {
-    box-shadow: var(--shadow-glow), var(--shadow);
+    transform: translateY(-2px);
+    background: rgba(0, 0, 0, 0.35);
   }
 
-  /* 隐藏款卡片 */
-  .sbti-card-secret {
-    border: 2px dashed var(--accent-danger);
-    position: relative;
-  }
-
-  .sbti-card-secret::after {
-    content: '🔒 隐藏款';
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    padding: 4px 8px;
-    background: var(--accent-danger);
-    color: white;
-    font-size: 11px;
-    border-radius: 4px;
-    font-weight: 600;
-  }
-
-  /* ========== 戳心文案字体 ========== */
-  .font-classic {
-    font-family: 'Ma Shan Zheng', cursive;
-  }
-
-  /* ========== 进度条 ========== */
-  .progress-bar {
-    height: 6px;
-    background: var(--bg-secondary);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: var(--progress-gradient);
-    border-radius: 3px;
-    transition: width 0.3s ease-out;
-  }
-
-  /* ========== 选项按钮 ========== */
+  /* 选项按钮 */
   .sbti-option {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 16px;
-    background: var(--bg-elevated);
-    border: 2px solid var(--border);
-    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.27);
+    border: 1px solid var(--border);
     cursor: pointer;
-    transition: all 0.15s ease;
-    width: 100%;
-    text-align: left;
+    transition: all 0.3s ease-out;
   }
 
   .sbti-option:hover {
+    transform: translateY(-1px);
+    background: rgba(0, 0, 0, 0.35);
     border-color: var(--accent-primary);
-    background: var(--bg-secondary);
   }
 
   .sbti-option.selected {
-    border-color: var(--accent-gold);
-    background: var(--bg-secondary);
+    border-color: var(--accent-primary);
+    background: rgba(20, 184, 166, 0.15);
   }
 
-  .sbti-option-key {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-secondary);
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--text-secondary);
-    flex-shrink: 0;
-  }
-
-  .sbti-option.selected .sbti-option-key {
-    background: var(--accent-gold);
-    color: var(--bg-primary);
-  }
-
-  .sbti-option-text {
-    flex: 1;
-    font-size: 15px;
-    color: var(--text-primary);
-  }
-
-  /* ========== 分享卡片 ========== */
-  .share-card {
-    background: var(--progress-gradient);
+  /* 直角按钮 - 消除AI味的关键 */
+  .btn-rect {
+    background: var(--accent-danger);
     color: white;
-    border-radius: 1.25rem;
-    padding: 2rem;
-    text-align: center;
-  }
-
-  .share-card .btn-share {
-    background: white;
-    color: var(--accent-primary);
-    padding: 14px 32px;
-    border-radius: 30px;
-    font-weight: 700;
-    font-size: 16px;
+    font-weight: 600;
     border: none;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: transform 0.15s, box-shadow 0.15s;
+    transition: all 0.3s ease-out;
   }
 
-  .share-card .btn-share:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  .btn-rect:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
   }
 
-  /* ========== 精怪专属色卡 ========== */
-  .personality-accent {
-    position: relative;
-    overflow: hidden;
+  /* 篆体印章效果 */
+  .seal {
+    font-family: 'Noto Serif SC', serif;
+    opacity: 0.3;
+    user-select: none;
   }
 
-  .personality-accent::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--card-accent, var(--accent-gold));
+  /* 呼吸动画 */
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
   }
 
-  .personality-name {
-    color: var(--accent-gold);
-    font-size: 1.75rem;
-    font-weight: 700;
+  .animate-breathe {
+    animation: breathe 3s ease-in-out infinite;
   }
 
-  .dark .personality-name {
-    text-shadow: 0 0 20px rgba(212,175,55,0.5);
+  /* 脉冲动画 */
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 5px rgba(220, 38, 38, 0.3); }
+    50% { box-shadow: 0 0 25px rgba(220, 38, 38, 0.6); }
   }
 
-  .dark .sbti-card-secret .personality-name {
-    color: var(--accent-danger);
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
   }
 
-  /* ========== Glass Effect ========== */
-  .glass {
-    background: rgba(var(--bg-elevated), 0.8);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  /* ========== Tag ========== */
-  .sbti-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 6px 12px;
-    background: var(--bg-secondary);
-    border-radius: 20px;
-    font-size: 13px;
-    color: var(--text-secondary);
-  }
-
-  .dark .sbti-tag {
-    background: var(--bg-elevated);
-  }
-
-  /* ========== 交互状态 ========== */
-  .hover-lift {
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-
-  .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-  }
-
-  .sbti-option:hover {
-    border-color: var(--accent-primary);
-    background: var(--bg-secondary);
-  }
-
-  .sbti-card:hover {
-    box-shadow: var(--shadow-glow), var(--shadow);
-  }
-
-  /* 按钮 hover 效果 */
-  .btn-hover:hover {
-    opacity: 0.9;
-    transform: scale(1.02);
-  }
-
-  .btn-hover:active {
-    transform: scale(0.98);
-  }
-
-  /* Focus Visible Ring - 无障碍键盘导航 */
-  .focus-visible-ring:focus-visible {
-    outline: 2px solid var(--accent-gold);
-    outline-offset: 2px;
-  }
-
-  /* 减少动画 - 支持 prefers-reduced-motion */
-  @media (prefers-reduced-motion: reduce) {
-    .hover-lift,
-    .animate-fade-in,
-    .animate-scale-in,
-    .animate-glow,
-    .animate-card {
-      transition: none !important;
-      animation: none !important;
+  /* 淡入动画 */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
     }
-
-    .hover-lift:hover {
-      transform: none;
-    }
-
-    .btn-hover:hover,
-    .btn-hover:active {
-      transform: none;
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
-}
 
-@layer utilities {
-  /* ========== 动画 ========== */
-  .animate-fade-in {
-    animation: fadeIn 0.4s ease forwards;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .animate-scale-in {
-    animation: scaleIn 0.4s ease forwards;
-  }
-
-  @keyframes scaleIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  .animate-glow {
-    animation: glow 2s ease-in-out infinite;
-  }
-
-  @keyframes glow {
-    0%, 100% { box-shadow: 0 0 20px rgba(212,175,55,0.3); }
-    50% { box-shadow: 0 0 40px rgba(212,175,55,0.6); }
-  }
-
-  /* 卡片入场动画 */
-  .animate-card {
-    animation: cardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  @keyframes cardIn {
-    from { opacity: 0; transform: translateY(20px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
-  /* Stagger delays */
-  [class*="delay-"] {
-    animation-fill-mode: forwards;
+  .animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
     opacity: 0;
   }
 
-  .delay-100 { animation-delay: 100ms; }
-  .delay-200 { animation-delay: 200ms; }
-  .delay-300 { animation-delay: 300ms; }
+  /* 墨水扩散动画 */
+  @keyframes inkSpread {
+    0% { transform: scaleX(0); opacity: 0.5; }
+    100% { transform: scaleX(1); opacity: 1; }
+  }
 
-  /* Reduced motion */
-  @media (prefers-reduced-motion: reduce) {
-    .animate-fade-in,
-    .animate-scale-in,
-    .animate-glow,
-    .animate-card {
-      animation: none;
+  .animate-ink-spread {
+    animation: inkSpread 0.8s ease-out forwards;
+    transform-origin: left center;
+  }
+
+  /* 旋转动画 */
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 60s linear infinite;
+  }
+
+  /* 青龙眼睛跟随 */
+  @keyframes eye-follow {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+  }
+
+  /* 甲骨文碎片装饰 */
+  .oracle-bone {
+    position: fixed;
+    font-family: 'Noto Serif SC', serif;
+    opacity: 0.02;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* 青铜光芒效果 */
+  .bronze-glow {
+    position: relative;
+  }
+
+  .bronze-glow::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  /* 分割线 - 青铜绿 */
+  .bronze-divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent-primary), transparent);
+  }
+
+  /* 纸张展开动画 */
+  @keyframes paper-unfold {
+    0% {
+      transform: scaleY(0);
+      opacity: 0;
+    }
+    100% {
+      transform: scaleY(1);
       opacity: 1;
-      transform: none;
+    }
+  }
+
+  .animate-paper-unfold {
+    animation: paper-unfold 0.6s ease-out forwards;
+    transform-origin: top center;
+  }
+
+  /* 交错延迟 */
+  .delay-100 { animation-delay: 0.1s; }
+  .delay-200 { animation-delay: 0.2s; }
+  .delay-300 { animation-delay: 0.3s; }
+  .delay-400 { animation-delay: 0.4s; }
+  .delay-500 { animation-delay: 0.5s; }
+  .delay-600 { animation-delay: 0.6s; }
+  .delay-700 { animation-delay: 0.7s; }
+  .delay-800 { animation-delay: 0.8s; }
+  .delay-900 { animation-delay: 0.9s; }
+
+  /* 响应式处理 */
+  @media (max-width: 640px) {
+    .mobile-stack > * {
+      margin-bottom: 1rem;
     }
   }
 }

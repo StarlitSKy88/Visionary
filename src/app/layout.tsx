@@ -13,9 +13,9 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: 'AI经营助手 - 小微企业专属定制',
-  description: '口语描述经营痛点，AI自动生成专属经营助手，7天免费试用',
-  keywords: 'AI经营助手,小微企业,智能客服,报价助手,库存管理',
+  title: '山海经老板测试 - 24道题测出你的老板人格',
+  description: '36种山海经精怪人格，24道灵魂拷问，测出你的老板类型和专属赚钱建议',
+  keywords: '山海经,老板测试,人格测试,创业,赚钱',
 }
 
 export const viewport = {

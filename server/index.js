@@ -44,16 +44,6 @@ initDatabase().then(() => {
 })
 
 // 路由
-app.use('/api/auth', require('./routes/auth'))
-app.use('/api/agents', require('./routes/agents'))
-app.use('/api/orders', require('./routes/orders'))
-app.use('/api/admin', require('./routes/admin'))
-app.use('/api/analytics', require('./routes/analytics'))
-app.use('/api/team', require('./routes/team'))
-app.use('/api/inquiry', require('./routes/inquiry'))
-app.use('/api/payment', require('./routes/payment'))
-app.use('/api/reports', require('./routes/reports'))
-app.use('/api/followup', require('./routes/followup'))
 app.use('/api/sbti', require('./routes/sbti'))
 
 // 健康检查
