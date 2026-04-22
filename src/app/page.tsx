@@ -218,23 +218,25 @@ export default function HomePage() {
             {/* 龙角符号 */}
             <div style={{
               position: 'absolute',
-              top: '-12px',
-              right: '-8px',
-              fontSize: '16px',
+              top: '-14px',
+              right: '-10px',
+              fontSize: '19px',
               color: '#b45309',
-              opacity: 0.7,
+              opacity: 0.75,
               transform: 'rotate(25deg)',
-              textShadow: '0 0 8px rgba(180,83,9,0.5)'
+              textShadow: '0 0 12px rgba(180,83,9,0.6), 2px 2px 4px rgba(0,0,0,0.5)',
+              fontFamily: "'Ma Shan Zheng', cursive"
             }}>角</div>
             {/* 龙鳞符号 */}
             <div style={{
               position: 'absolute',
-              bottom: '-8px',
-              left: '20px',
-              fontSize: '10px',
+              bottom: '-10px',
+              left: '22px',
+              fontSize: '13px',
               color: '#78350f',
-              opacity: 0.5,
-              transform: 'rotate(-15deg)'
+              opacity: 0.55,
+              transform: 'rotate(-15deg)',
+              textShadow: '1px 1px 3px rgba(0,0,0,0.4)'
             }}>鳞</div>
           </div>
           {/* 裂痕 */}

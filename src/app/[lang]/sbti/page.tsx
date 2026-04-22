@@ -629,13 +629,15 @@ export default function SBTIPage() {
                       }}>
                         {option.text}
                       </span>
-                      {/* 裂痕暗示 */}
-                      {index === 2 && (
-                        <span style={{ opacity: 0.35, marginLeft: 'auto', fontSize: '10px', color: '#78716c', transform: 'rotate(8deg)' }}>〰</span>
-                      )}
-                      {/* 墨点装饰 */}
+                      {/* 随机装饰 - 每个选项不同 */}
                       {index === 0 && (
                         <span style={{ position: 'absolute', right: '10px', top: '8px', fontSize: '2px', color: '#78350f', opacity: 0.4 }}>·</span>
+                      )}
+                      {index === 1 && (
+                        <span style={{ position: 'absolute', right: '12px', top: '6px', fontSize: '6px', color: '#78350f', opacity: 0.3, transform: 'rotate(12deg)' }}>〰</span>
+                      )}
+                      {index === 2 && (
+                        <span style={{ opacity: 0.35, marginLeft: 'auto', fontSize: '10px', color: '#78716c', transform: 'rotate(8deg)' }}>〰</span>
                       )}
                       {index === 3 && (
                         <span style={{ position: 'absolute', left: '8px', bottom: '6px', fontSize: '2px', color: '#92400e', opacity: 0.3, transform: 'rotate(15deg)' }}>·</span>

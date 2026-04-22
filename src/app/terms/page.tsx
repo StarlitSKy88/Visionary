@@ -58,7 +58,7 @@ export default function TermsPage() {
           <h1 style={{
             fontFamily: "'Noto Serif SC', serif",
             fontWeight: '700',
-            fontSize: '18px',
+            fontSize: '21px',
             color: '#f8fafc',
             letterSpacing: '2px',
             transform: 'rotate(1deg)'
