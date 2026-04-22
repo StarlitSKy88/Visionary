@@ -35,6 +35,26 @@ const nextConfig = {
         source: '/api/team/:path*',
         destination: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/team/:path*`,
       },
+      {
+        source: '/api/sbti/:path*',
+        destination: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/sbti/:path*`,
+      },
+      {
+        source: '/api/inquiry/:path*',
+        destination: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/inquiry/:path*`,
+      },
+      {
+        source: '/api/payment/:path*',
+        destination: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/payment/:path*`,
+      },
+      {
+        source: '/api/reports/:path*',
+        destination: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/reports/:path*`,
+      },
+      {
+        source: '/api/followup/:path*',
+        destination: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/followup/:path*`,
+      },
     ]
   },
 }
