@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ArrowLeft, Share2, Copy, CheckCircle2, Lock, Unlock, ChevronRight, Sun, Moon } from 'lucide-react'
-import { useTheme, getPersonalityColors, isSecretPersonality } from '@/hooks/useTheme'
 
 interface Question {
   id: number
@@ -49,7 +47,6 @@ export default function SBTIPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const lang = 'zh'
-  const { theme, toggleTheme, mounted } = useTheme()
 
   const [sessionId, setSessionId] = useState<number | null>(null)
   const [currentQuestionId, setCurrentQuestionId] = useState<number>(0)
@@ -66,9 +63,7 @@ export default function SBTIPage() {
   const [phase, setPhase] = useState<'test' | 'result'>('test')
   const [copied, setCopied] = useState(false)
   const [questionVisible, setQuestionVisible] = useState(true)
-
-  const personalityColors = personality ? getPersonalityColors(personality.id) : null
-  const isSecret = personality ? isSecretPersonality(personality.id) : false
+  const [questionEntering, setQuestionEntering] = useState(false)
 
   const refCode = searchParams.get('ref')
 
@@ -142,8 +137,8 @@ export default function SBTIPage() {
     const newAnswers = { ...answers, [questionId]: answerKey }
     setAnswers(newAnswers)
 
-    // 淡出动画
     setQuestionVisible(false)
+    setQuestionEntering(true)
 
     setTimeout(async () => {
       if (questionId < totalQuestions) {
@@ -167,6 +162,7 @@ export default function SBTIPage() {
         } finally {
           setLoading(false)
           setQuestionVisible(true)
+          setQuestionEntering(false)
         }
       } else {
         await completeTest()
@@ -211,109 +207,195 @@ export default function SBTIPage() {
   const progress = Object.keys(answers).length
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: '#0a1210' }}>
+      {/* 噪点纹理背景 */}
+      <div className="fixed inset-0 pointer-events-none z-0" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        opacity: 0.05
+      }} />
+
       {/* 暗角效果 */}
       <div className="fixed inset-0 pointer-events-none z-10" style={{
         background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)'
       }} />
 
-      {/* 甲骨文装饰 */}
-      <OracleBones />
+      {/* 左上角篆体印章 */}
+      <div className="absolute z-20" style={{ left: '60px', top: '60px' }}>
+        <div className="seal" style={{ fontSize: '16px', opacity: 0.3, color: '#14b8a6' }}>山</div>
+      </div>
 
-      {/* Header - 简化版 */}
-      <header className="sticky top-0 z-20 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => router.back()}
-            className="p-2 opacity-60 hover:opacity-100 transition-opacity"
-            aria-label="返回"
-          >
-            <ArrowLeft className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />
-          </button>
+      {/* 右上角链接 */}
+      <div className="absolute z-20 flex gap-6" style={{ right: '60px', top: '60px' }}>
+        <span className="text-xs opacity-30" style={{ color: '#64748b', fontSize: '11px', cursor: 'pointer' }} onClick={() => router.push('/zh/privacy')}>
+          隐私政策
+        </span>
+        <span className="text-xs opacity-30" style={{ color: '#64748b', fontSize: '11px', cursor: 'pointer' }} onClick={() => router.push('/zh/terms')}>
+          用户协议
+        </span>
+      </div>
 
-          {/* 古风卷轴进度条 */}
-          <div className="flex items-center gap-3 flex-1 ml-4">
-            <span className="seal text-sm opacity-40">卷</span>
-            <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border)' }}>
-              <div
-                className="h-full animate-ink-spread"
-                style={{
-                  width: `${(progress / totalQuestions) * 100}%`,
-                  background: 'var(--accent-primary)'
-                }}
-              />
-            </div>
-            <span className="text-xs opacity-60" style={{ color: 'var(--text-muted)' }}>
-              第 {progress} / {totalQuestions} 题
-            </span>
+      {/* Header */}
+      <header className="sticky top-0 z-20" style={{ padding: '20px 80px' }}>
+        {/* 返回按钮 */}
+        <button
+          onClick={() => router.back()}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: '#64748b',
+            fontSize: '13px',
+            cursor: 'pointer',
+            opacity: 0.6
+          }}
+        >
+          ← 返回
+        </button>
+
+        {/* 进度条 - 精确坐标(80, 60), 800px宽 */}
+        <div className="flex items-center gap-3" style={{ marginTop: '20px' }}>
+          <span className="seal" style={{ fontSize: '12px', opacity: 0.3, color: '#14b8a6' }}>卷</span>
+          <div style={{
+            flex: 1,
+            maxWidth: '800px',
+            height: '2px',
+            backgroundColor: 'rgba(0,0,0,0.27)',
+            position: 'relative'
+          }}>
+            <div
+              style={{
+                width: `${(progress / totalQuestions) * 100}%`,
+                height: '100%',
+                backgroundColor: '#14b8a6',
+                transition: 'width 0.3s ease-out'
+              }}
+            />
           </div>
-
-          <button
-            onClick={toggleTheme}
-            className="p-2 opacity-60 hover:opacity-100 transition-opacity ml-4"
-            aria-label={theme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'}
-          >
-            {mounted && (theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />)}
-          </button>
+          <span style={{
+            fontFamily: "'Noto Serif SC', serif",
+            fontSize: '13px',
+            opacity: 0.6,
+            color: '#cbd5e1',
+            letterSpacing: '0.5px'
+          }}>
+            第 {progress} / {totalQuestions} 题
+          </span>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-6 py-8 relative z-20">
+      <main className="relative z-20" style={{ padding: '0 320px' }}>
         {/* 加载状态 */}
         {loading && !currentQuestion && !error && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="text-6xl animate-breathe">🐉</div>
-            <p className="mt-6 text-sm opacity-60" style={{ color: 'var(--text-muted)' }}>
+          <div className="flex flex-col items-center justify-center" style={{ paddingTop: '200px' }}>
+            <div className="animate-breathe" style={{ fontSize: '80px' }}>🐉</div>
+            <p style={{
+              marginTop: '24px',
+              fontSize: '14px',
+              opacity: 0.6,
+              color: '#64748b'
+            }}>
               正在加载题目...
             </p>
           </div>
         )}
 
         {error && (
-          <div className="sbti-card p-4" style={{ borderColor: 'var(--accent-danger)' }}>
-            <p className="text-sm" style={{ color: 'var(--accent-danger)' }}>{error}</p>
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(0,0,0,0.27)',
+            borderRadius: '4px',
+            border: '1px solid #dc2626'
+          }}>
+            <p style={{ fontSize: '14px', color: '#dc2626' }}>{error}</p>
           </div>
         )}
 
-        {/* 测试阶段 */}
+        {/* 测试阶段 - 题目和选项 */}
         {!loading && phase === 'test' && currentQuestion && (
-          <div className={`transition-opacity duration-300 ${questionVisible ? 'opacity-100' : 'opacity-0'}`}>
-            {/* 题目 */}
-            <div className="mb-8 ml-2">
-              <h2 className="text-2xl font-bold leading-relaxed" style={{ color: 'var(--text-primary)', lineHeight: 1.7 }}>
+          <div
+            className="transition-all duration-300"
+            style={{
+              opacity: questionVisible ? 1 : 0,
+              transform: questionVisible ? 'translateY(0)' : 'translateY(-20px)'
+            }}
+          >
+            {/* 题目 - 精确坐标(320, 180) */}
+            <div style={{ maxWidth: '800px', letterSpacing: '0.5px' }}>
+              <h2 style={{
+                fontFamily: "'Noto Serif SC', serif",
+                fontWeight: '700',
+                fontSize: '24px',
+                color: '#f8fafc',
+                lineHeight: 1.7,
+                letterSpacing: '0.5px'
+              }}>
                 {currentQuestion.question}
               </h2>
-              <div className="bronze-divider mt-4" style={{ width: '80%' }} />
-              <div className="mt-3 text-xl opacity-30">🐉</div>
+
+              {/* 青铜分隔线 - 题目宽度80% */}
+              <div style={{
+                width: '80%',
+                height: '1px',
+                backgroundColor: '#14b8a6',
+                marginTop: '16px'
+              }} />
             </div>
 
-            {/* 选项 - 错落布局 */}
-            <div className="space-y-0">
+            {/* 四个选项 - 精确坐标 */}
+            <div className="space-y-0" style={{ marginTop: '40px', maxWidth: '600px' }}>
               {currentQuestion.options.map((option, index) => {
                 const borderRadii = ['4px', '7px', '11px', '7px']
                 const paddings = ['13px', '15px', '17px', '15px']
+                const positions = [
+                  { left: '0px', top: '0px' },
+                  { left: '40px', top: '70px' },
+                  { left: '0px', top: '140px' },
+                  { left: '40px', top: '210px' }
+                ]
+                const isSelected = answers[currentQuestion.id] === option.key
                 return (
                   <button
                     key={option.key}
                     onClick={() => handleAnswer(currentQuestion.id, option.key)}
-                    className={`sbti-option w-full text-left mb-3 animate-fade-in-up ${answers[currentQuestion.id] === option.key ? 'selected' : ''}`}
                     style={{
-                      animationDelay: `${index * 100}ms`,
+                      position: 'absolute',
+                      left: positions[index].left,
+                      top: positions[index].top,
+                      width: '600px',
+                      height: '50px',
+                      backgroundColor: isSelected ? 'rgba(0,0,0,0.36)' : 'rgba(0,0,0,0.27)',
+                      border: isSelected ? '2px solid #14b8a6' : 'none',
                       borderRadius: borderRadii[index],
                       padding: paddings[index],
-                      marginLeft: index % 2 === 0 ? '0' : '20px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      transition: 'all 0.15s ease-out',
+                      boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)',
+                      letterSpacing: '0.5px'
                     }}
                   >
                     <span
-                      className="text-sm font-bold w-6 h-6 flex items-center justify-center rounded"
                       style={{
-                        background: answers[currentQuestion.id] === option.key ? 'var(--accent-primary)' : 'var(--bg-secondary)',
-                        color: answers[currentQuestion.id] === option.key ? 'var(--bg-primary)' : 'var(--text-secondary)'
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        width: '24px',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '4px',
+                        backgroundColor: isSelected ? '#14b8a6' : 'rgba(0,0,0,0.27)',
+                        color: isSelected ? '#0a1210' : '#cbd5e1'
                       }}
                     >
                       {option.key}
                     </span>
-                    <span className="text-sm" style={{ fontFamily: "'Ma Shan Zheng', cursive", color: 'var(--text-secondary)' }}>
+                    <span style={{
+                      fontSize: '15px',
+                      fontFamily: "'Ma Shan Zheng', cursive",
+                      color: '#f8fafc'
+                    }}>
                       {option.text}
                     </span>
                   </button>
@@ -321,15 +403,38 @@ export default function SBTIPage() {
               })}
             </div>
 
-            {/* 底部提示 */}
-            <div className="mt-8 flex items-center justify-end gap-4">
+            {/* 底部按钮 */}
+            <div className="flex items-center" style={{ marginTop: '280px', justifyContent: 'space-between', maxWidth: '600px' }}>
+              <button
+                onClick={() => router.back()}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#64748b',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  opacity: 0.6
+                }}
+              >
+                退出测试
+              </button>
+
               {progress > 0 && (
                 <button
-                  onClick={() => router.back()}
-                  className="text-xs opacity-60 hover:opacity-100 transition-opacity"
-                  style={{ color: 'var(--text-muted)' }}
+                  style={{
+                    width: '180px',
+                    height: '50px',
+                    backgroundColor: '#dc2626',
+                    color: 'white',
+                    fontWeight: '600',
+                    fontSize: '16px',
+                    border: 'none',
+                    borderRadius: '0',
+                    cursor: 'pointer',
+                    letterSpacing: '0.5px'
+                  }}
                 >
-                  退出测试
+                  下一题
                 </button>
               )}
             </div>
@@ -340,25 +445,59 @@ export default function SBTIPage() {
         {!loading && phase === 'result' && personality && card && (
           <div className="animate-fade-in-up">
             {/* 结果标题 */}
-            <div className="mb-8 ml-2">
-              <h2 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            <div style={{ marginBottom: '32px', letterSpacing: '0.5px' }}>
+              <h2 style={{
+                fontFamily: "'Noto Serif SC', serif",
+                fontWeight: '700',
+                fontSize: '32px',
+                color: '#f8fafc'
+              }}>
                 你的老板人格是：
               </h2>
-              <div className="text-4xl font-bold mt-2" style={{ color: 'var(--accent-primary)' }}>
+              <div style={{
+                fontSize: '36px',
+                fontWeight: '700',
+                marginTop: '8px',
+                color: '#14b8a6'
+              }}>
                 {personality.name}
               </div>
-              <p className="text-sm opacity-60 mt-2 ml-4" style={{ color: 'var(--text-secondary)' }}>
+              <p style={{
+                fontSize: '14px',
+                opacity: 0.6,
+                marginTop: '8px',
+                marginLeft: '16px',
+                color: '#cbd5e1'
+              }}>
                 {personality.title}
               </p>
             </div>
 
             {/* 神兽展示 */}
-            <div className="flex items-start gap-6 mb-8 ml-4">
-              <div className="bronze-glow">
-                <div className="text-6xl animate-breathe">{card.emoji}</div>
+            <div className="flex items-start gap-6" style={{ marginBottom: '32px' }}>
+              <div style={{
+                position: 'relative'
+              }}>
+                <div style={{
+                  width: '160px',
+                  height: '160px',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(20,184,166,0.15) 0%, transparent 70%)',
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)'
+                }} />
+                <div className="animate-breathe" style={{ fontSize: '64px', position: 'relative', zIndex: 1 }}>{card.emoji}</div>
               </div>
               <div className="flex-1">
-                <p className="text-sm leading-loose" style={{ fontFamily: "'Ma Shan Zheng', cursive", color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+                <p style={{
+                  fontFamily: "'Ma Shan Zheng', cursive",
+                  fontSize: '14px',
+                  color: '#cbd5e1',
+                  lineHeight: 1.8,
+                  letterSpacing: '0.5px'
+                }}>
                   "{card.slogan}"
                 </p>
               </div>
@@ -366,55 +505,100 @@ export default function SBTIPage() {
 
             {/* 三个分析卡片 - 错落布局 */}
             <div className="space-y-0">
-              {/* 卡片1 - 最高 */}
+              {/* 卡片1 */}
               <div
-                className="sbti-card p-5 mb-0 animate-fade-in-up"
                 style={{
                   width: '300px',
+                  backgroundColor: 'rgba(0,0,0,0.27)',
                   borderRadius: '4px',
-                  marginLeft: '2%'
+                  padding: '20px',
+                  boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)',
+                  marginLeft: '16px',
+                  letterSpacing: '0.5px'
                 }}
               >
-                <h3 className="text-base font-semibold mb-3" style={{ color: 'var(--accent-primary)' }}>
+                <h3 style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  marginBottom: '12px',
+                  color: '#14b8a6'
+                }}>
                   性格特点
                 </h3>
-                <p className="text-xs" style={{ fontFamily: "'Ma Shan Zheng', cursive", color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+                <p style={{
+                  fontFamily: "'Ma Shan Zheng', cursive",
+                  fontSize: '13px',
+                  color: '#cbd5e1',
+                  lineHeight: 1.7
+                }}>
                   {card.good_for}
                 </p>
               </div>
 
-              {/* 卡片2 - 中间 */}
+              {/* 卡片2 */}
               <div
-                className="sbti-card p-5 mt-4 animate-fade-in-up delay-200"
                 style={{
                   width: '320px',
+                  backgroundColor: 'rgba(0,0,0,0.27)',
                   borderRadius: '7px',
-                  marginLeft: '15%'
+                  padding: '20px',
+                  boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)',
+                  marginTop: '16px',
+                  marginLeft: '120px',
+                  letterSpacing: '0.5px'
                 }}
               >
-                <h3 className="text-base font-semibold mb-3" style={{ color: 'var(--accent-primary)' }}>
+                <h3 style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  marginBottom: '12px',
+                  color: '#14b8a6'
+                }}>
                   职场表现
                 </h3>
-                <p className="text-xs" style={{ fontFamily: "'Ma Shan Zheng', cursive", color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+                <p style={{
+                  fontFamily: "'Ma Shan Zheng', cursive",
+                  fontSize: '13px',
+                  color: '#cbd5e1',
+                  lineHeight: 1.7
+                }}>
                   {card.avoid}
                 </p>
               </div>
 
-              {/* 卡片3 - 最低 */}
+              {/* 卡片3 */}
               <div
-                className="sbti-card p-5 mt-4 animate-fade-in-up delay-400"
                 style={{
                   width: '280px',
+                  backgroundColor: 'rgba(0,0,0,0.27)',
                   borderRadius: '11px',
-                  marginLeft: '28%'
+                  padding: '20px',
+                  boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)',
+                  marginTop: '16px',
+                  marginLeft: '224px',
+                  letterSpacing: '0.5px'
                 }}
               >
-                <h3 className="text-base font-semibold mb-3" style={{ color: 'var(--accent-primary)' }}>
+                <h3 style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  marginBottom: '12px',
+                  color: '#14b8a6'
+                }}>
                   相处建议
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {card.tags.map((tag, i) => (
-                    <span key={i} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-muted)' }}>
+                    <span
+                      key={i}
+                      style={{
+                        fontSize: '12px',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        backgroundColor: 'rgba(0,0,0,0.27)',
+                        color: '#64748b'
+                      }}
+                    >
                       {tag.icon} {tag.text}
                     </span>
                   ))}
@@ -423,25 +607,44 @@ export default function SBTIPage() {
             </div>
 
             {/* 分享卡片 */}
-            <div className="sbti-card p-6 mt-8 ml-4" style={{ maxWidth: '340px' }}>
+            <div style={{
+              maxWidth: '340px',
+              backgroundColor: 'rgba(0,0,0,0.27)',
+              borderRadius: '7px',
+              padding: '24px',
+              marginTop: '32px',
+              marginLeft: '16px',
+              boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)'
+            }}>
               <div className="text-center mb-4">
                 {shareStatus?.unlocked ? (
                   <div className="flex flex-col items-center gap-2">
-                    <Unlock className="w-10 h-10" style={{ color: 'var(--accent-primary)' }} />
-                    <p className="font-medium" style={{ color: 'var(--accent-primary)' }}>
+                    <div style={{ fontSize: '40px' }}>🔓</div>
+                    <p style={{ fontWeight: '600', color: '#14b8a6' }}>
                       报告已解锁
                     </p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2">
-                    <Lock className="w-10 h-10 opacity-40" style={{ color: 'var(--text-muted)' }} />
-                    <p className="text-sm opacity-60">
+                    <div style={{ fontSize: '40px', opacity: 0.4 }}>🔒</div>
+                    <p style={{ fontSize: '14px', opacity: 0.6 }}>
                       分享解锁报告（还差{shareStatus?.remaining || 10}次）
                     </p>
-                    <div className="w-full h-1 rounded-full mt-2" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                    <div style={{
+                      width: '100%',
+                      height: '4px',
+                      borderRadius: '2px',
+                      backgroundColor: 'rgba(0,0,0,0.27)',
+                      marginTop: '8px'
+                    }}>
                       <div
-                        className="h-full rounded-full"
-                        style={{ width: `${((shareStatus?.opens || 0) / 10) * 100}%`, background: 'var(--accent-primary)' }}
+                        style={{
+                          width: `${((shareStatus?.opens || 0) / 10) * 100}%`,
+                          height: '100%',
+                          borderRadius: '2px',
+                          backgroundColor: '#14b8a6',
+                          transition: 'width 0.3s ease-out'
+                        }}
                       />
                     </div>
                   </div>
@@ -450,30 +653,42 @@ export default function SBTIPage() {
 
               {/* 分享按钮 */}
               <div className="space-y-2">
-                {(['吐槽风', '励志风', '商务风'] as const).map((style) => (
+                {(['吐槽风', '励志风', '商务风'] as const).map((style, idx) => (
                   <button
                     key={style}
                     onClick={() => copyShareText(style)}
-                    className="w-full text-left px-4 py-2 text-sm rounded transition-all hover:translate-x-1"
                     style={{
-                      backgroundColor: 'var(--bg-secondary)',
-                      color: 'var(--text-secondary)',
-                      borderRadius: ['4px', '7px', '11px'][['吐槽风', '励志风', '商务风'].indexOf(style)]
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '8px 16px',
+                      fontSize: '14px',
+                      backgroundColor: 'rgba(0,0,0,0.27)',
+                      color: '#cbd5e1',
+                      border: 'none',
+                      borderRadius: ['4px', '7px', '11px'][idx],
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease-out',
+                      letterSpacing: '0.5px'
                     }}
                   >
-                    {copied ? <CheckCircle2 className="inline w-4 h-4 mr-2" /> : <Copy className="inline w-4 h-4 mr-2" />}
-                    {style}
+                    {copied ? '✓ ' : '📋 '}{style}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* 底部操作 */}
-            <div className="mt-8 flex items-center justify-between ml-4 mr-4">
+            <div className="flex items-center justify-between" style={{ marginTop: '32px', maxWidth: '340px' }}>
               <button
                 onClick={() => window.location.reload()}
-                className="text-xs opacity-60 hover:opacity-100 transition-opacity"
-                style={{ color: 'var(--text-muted)' }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#64748b',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  opacity: 0.6
+                }}
               >
                 重新测试
               </button>
@@ -481,15 +696,30 @@ export default function SBTIPage() {
               {shareStatus?.unlocked && (
                 <button
                   onClick={() => router.push(`/${lang}/sbti/report/${sessionId}`)}
-                  className="btn-rect px-6 py-2 text-sm"
-                  style={{ borderRadius: '0' }}
+                  style={{
+                    padding: '8px 24px',
+                    backgroundColor: '#dc2626',
+                    color: 'white',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    border: 'none',
+                    borderRadius: '0',
+                    cursor: 'pointer',
+                    letterSpacing: '0.5px'
+                  }}
                 >
                   查看完整报告
                 </button>
               )}
             </div>
 
-            <p className="text-center text-xs opacity-40 mt-6" style={{ color: 'var(--text-muted)' }}>
+            <p style={{
+              textAlign: 'center',
+              fontSize: '12px',
+              opacity: 0.4,
+              marginTop: '24px',
+              color: '#64748b'
+            }}>
               测试结果仅供娱乐，请勿当真
             </p>
           </div>
@@ -497,33 +727,18 @@ export default function SBTIPage() {
       </main>
 
       {/* 右下角八卦装饰 */}
-      <div className="fixed bottom-8 right-8 opacity-20 animate-spin-slow text-2xl" style={{ color: 'var(--accent-primary)' }}>
+      <div
+        className="fixed animate-spin-slow"
+        style={{
+          bottom: '32px',
+          right: '32px',
+          opacity: 0.2,
+          color: '#14b8a6',
+          fontSize: '24px'
+        }}
+      >
         ☯
       </div>
     </div>
-  )
-}
-
-/* 甲骨文碎片装饰组件 */
-function OracleBones() {
-  const bones = ['鼎', '甲骨', '篆', '玊', '亼', '朮', '氵', '炓', '硎', '餮']
-  return (
-    <>
-      {bones.map((char, i) => (
-        <div
-          key={i}
-          className="oracle-bone text-xl"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            transform: `rotate(${Math.random() * 360}deg) scale(${0.8 + Math.random() * 0.8})`,
-            fontSize: `${12 + Math.random() * 20}px`,
-            opacity: 0.02 + Math.random() * 0.02
-          }}
-        >
-          {char}
-        </div>
-      ))}
-    </>
   )
 }
