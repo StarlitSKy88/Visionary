@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
-import { Loader2 } from 'lucide-react'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'rect'
@@ -20,49 +19,56 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     children,
     leftIcon,
     rightIcon,
+    style,
     ...props
   }, ref) => {
     const isDisabled = disabled || loading
 
-    // Compute variant styles using CSS variables
+    // 反AI设计 - 非标准尺寸
+    const heights = { xs: '32px', sm: '36px', base: '44px', lg: '52px', icon: '44px' }
+    const paddings = { xs: '0 12px', sm: '0 16px', base: '0 20px', lg: '0 28px', icon: '0' }
+    const fontSizes = { xs: '11px', sm: '12px', base: '13px', lg: '15px', icon: '14px' }
+
+    // 印章篆刻风格
     const getVariantStyle = (): React.CSSProperties => {
       switch (variant) {
         case 'primary':
           return {
-            backgroundColor: 'var(--accent-primary)',
-            color: 'var(--text-primary)',
-            borderColor: 'var(--accent-primary)',
+            backgroundColor: '#991b1b',
+            color: '#fff',
+            border: 'none',
+            boxShadow: '4px 4px 0 rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
           }
         case 'secondary':
           return {
-            backgroundColor: 'var(--bg-secondary)',
-            color: 'var(--text-secondary)',
-            borderColor: 'var(--border)',
+            backgroundColor: 'rgba(0,0,0,0.35)',
+            color: '#a8a29e',
+            border: '1px solid rgba(180,83,9,0.3)',
           }
         case 'outline':
           return {
             backgroundColor: 'transparent',
-            color: 'var(--accent-primary)',
-            borderColor: 'var(--accent-primary)',
+            color: '#c9a962',
+            border: '1px solid #c9a962',
           }
         case 'ghost':
           return {
             backgroundColor: 'transparent',
-            color: 'var(--text-muted)',
-            borderColor: 'transparent',
+            color: '#78716c',
+            border: 'none',
           }
         case 'destructive':
           return {
-            backgroundColor: 'var(--accent-danger)',
-            color: 'white',
-            borderColor: 'var(--accent-danger)',
+            backgroundColor: '#dc2626',
+            color: '#fff',
+            border: 'none',
           }
         case 'rect':
           return {
-            backgroundColor: 'var(--accent-danger)',
-            color: 'white',
+            backgroundColor: '#991b1b',
+            color: '#fff',
             border: 'none',
-            borderRadius: '0',
+            borderRadius: '2px',
           }
         default:
           return {}
@@ -73,36 +79,30 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={isDisabled}
-        style={getVariantStyle()}
-        className={cn(
-          // Base styles
-          'inline-flex items-center justify-center font-semibold transition-all duration-200',
-          'focus:outline-none focus:ring-2 focus:ring-offset-2',
-          'disabled:opacity-50 disabled:cursor-not-allowed',
-          'active:scale-[0.98]',
-          'border',
-          variant === 'rect' ? 'rounded-none' : 'rounded-lg',
-
-          // Size styles
-          {
-            'h-8 px-3 text-xs gap-1.5': size === 'xs',
-            'h-9 px-4 text-sm gap-2': size === 'sm',
-            'h-11 px-5 text-sm gap-2': size === 'base',
-            'h-14 px-8 text-base gap-3': size === 'lg',
-            'h-11 w-11': size === 'icon',
-          },
-
-          className
-        )}
+        style={{
+          ...getVariantStyle(),
+          height: heights[size],
+          padding: paddings[size],
+          fontSize: fontSizes[size],
+          fontWeight: 700,
+          letterSpacing: '2px',
+          cursor: isDisabled ? 'not-allowed' : 'pointer',
+          opacity: isDisabled ? 0.5 : 1,
+          transition: 'all 0.25s ease-out',
+          transform: 'skewX(-3deg)',
+          fontFamily: "'Noto Serif SC', serif",
+          ...style,
+        }}
+        className={cn(className)}
         {...props}
       >
         {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <span style={{ fontSize: '14px', transform: 'rotate(-10deg)', display: 'inline-block' }}>◉</span>
         ) : leftIcon ? (
-          <span className="shrink-0">{leftIcon}</span>
+          <span style={{ marginRight: '6px' }}>{leftIcon}</span>
         ) : null}
         {children}
-        {!loading && rightIcon && <span className="shrink-0">{rightIcon}</span>}
+        {!loading && rightIcon && <span style={{ marginLeft: '6px' }}>{rightIcon}</span>}
       </button>
     )
   }

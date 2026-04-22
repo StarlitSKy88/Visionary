@@ -8,30 +8,31 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, hover = false, padding = 'base', variant = 'default', ...props }, ref) => {
+  ({ className, hover = false, padding = 'base', variant = 'default', style, ...props }, ref) => {
+    // 反AI设计 - 非标准圆角
+    const borderRadii = ['4px', '8px', '6px', '10px', '3px', '14px']
+    const randomRadius = borderRadii[Math.floor(Math.random() * borderRadii.length)]
+
     return (
       <div
         ref={ref}
-        className={cn(
-          // Base styles - Dark theme
-          'rounded-2xl bg-[#1f1f1f] border border-[#2e2e2e] transition-all duration-300',
-          // Variants
-          {
-            'border-[#2e2e2e] shadow-lg': variant === 'default',
-            'border-[#333333] shadow-xl': variant === 'elevated',
-            'border-2 border-[#333333]': variant === 'outline',
-          },
+        className={cn(className)}
+        style={{
+          // Base styles - 山海经风格
+          backgroundColor: 'rgba(0, 0, 0, 0.42)',
+          borderRadius: randomRadius,
+          border: '1px solid rgba(180, 83, 9, 0.25)',
+          boxShadow: 'inset 0 2px 12px rgba(0, 0, 0, 0.5), 3px 4px 12px rgba(0, 0, 0, 0.35)',
+          transition: 'all 0.3s ease-out',
+          ...(hover && {
+            transform: 'translateY(-2px) rotate(0.3deg)',
+            backgroundColor: 'rgba(0, 0, 0, 0.48)',
+            boxShadow: 'inset 0 2px 15px rgba(0, 0, 0, 0.6), 4px 5px 14px rgba(0, 0, 0, 0.4)',
+          }),
           // Padding
-          {
-            'p-0': padding === 'none',
-            'p-5': padding === 'sm',
-            'p-6': padding === 'base',
-            'p-8': padding === 'lg',
-          },
-          // Hover effect
-          hover && 'hover:border-[#3ec489]/30 hover:shadow-xl hover:shadow-[#3ec489]/5 cursor-pointer active:scale-[0.99]',
-          className
-        )}
+          padding: padding === 'none' ? 0 : padding === 'sm' ? '14px' : padding === 'base' ? '18px' : '24px',
+          ...style,
+        }}
         {...props}
       />
     )

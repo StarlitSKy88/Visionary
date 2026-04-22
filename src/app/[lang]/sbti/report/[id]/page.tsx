@@ -2,10 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Badge, Spinner } from '@/components/ui/misc'
-import { ArrowLeft, Clock, AlertTriangle, CheckCircle2, Lock, Share2, Copy, CheckCircle } from 'lucide-react'
 
 interface SBTIReportData {
   sessionId: number
@@ -69,7 +65,7 @@ function getDeviceId(): string {
 export default function SBTIReportPage() {
   const router = useRouter()
   const params = useParams()
-  const lang = 'zh' // TODO: 从路由获取
+  const lang = 'zh'
   const sessionId = params?.id as string
 
   const [reportData, setReportData] = useState<SBTIReportData | null>(null)
@@ -189,10 +185,47 @@ export default function SBTIReportPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
-        <div className="text-center">
-          <Spinner size="lg" className="text-amber-500 mx-auto mb-4" />
-          <p className="text-slate-600 dark:text-slate-400">{t('加载报告中...', 'Loading report...')}</p>
+      <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: '#0a1210' }}>
+        {/* 噪点纹理 */}
+        <div className="fixed inset-0 pointer-events-none z-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.8' numOctaves='7' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          opacity: 0.22
+        }} />
+        {/* 暗角 */}
+        <div className="fixed inset-0 pointer-events-none z-10" style={{
+          background: 'radial-gradient(ellipse at center, transparent 10%, rgba(0,0,0,0.85) 100%)'
+        }} />
+        {/* 加载中 - 龙图腾 */}
+        <div className="flex items-center justify-center min-h-screen" style={{ transform: 'rotate(-2deg)' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              fontFamily: "'Ma Shan Zheng', cursive",
+              fontSize: '72px',
+              color: '#dc2626',
+              textShadow: '4px 4px 0 rgba(0,0,0,0.4), 0 0 20px rgba(220,38,38,0.4)',
+              transform: 'rotate(-8deg)',
+              display: 'inline-block'
+            }}>龍</div>
+            {/* 裂痕 */}
+            <div style={{
+              fontSize: '14px',
+              color: '#78350f',
+              opacity: 0.5,
+              transform: 'rotate(15deg)',
+              display: 'inline-block',
+              marginLeft: '12px'
+            }}>〰</div>
+            <p style={{
+              marginTop: '24px',
+              fontSize: '12px',
+              opacity: 0.5,
+              color: '#78716c',
+              letterSpacing: '3px',
+              fontFamily: "'Noto Serif SC', serif"
+            }}>
+              正在加载报告...
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -200,14 +233,45 @@ export default function SBTIReportPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
-        <Card className="p-8 max-w-md text-center">
-          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-slate-900 dark:text-white mb-4">{error}</p>
-          <Button onClick={() => router.push(`/${lang}/sbti`)}>
-            {t('返回测试', 'Back to Test')}
-          </Button>
-        </Card>
+      <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: '#0a1210' }}>
+        <div className="fixed inset-0 pointer-events-none z-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.8' numOctaves='7' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          opacity: 0.22
+        }} />
+        <div className="fixed inset-0 pointer-events-none z-10" style={{
+          background: 'radial-gradient(ellipse at center, transparent 10%, rgba(0,0,0,0.85) 100%)'
+        }} />
+        <div className="flex items-center justify-center min-h-screen">
+          <div style={{
+            padding: '18px',
+            backgroundColor: 'rgba(0,0,0,0.42)',
+            borderRadius: '4px',
+            border: '1px solid #991b1b',
+            borderLeft: '5px solid #dc2626',
+            transform: 'rotate(-1deg)',
+            maxWidth: '380px'
+          }}>
+            <div style={{ fontSize: '24px', marginBottom: '12px', transform: 'rotate(-5deg)', display: 'inline-block' }}>⚠</div>
+            <p style={{ fontSize: '14px', color: '#dc2626', fontFamily: "'Noto Serif SC', serif" }}>{error}</p>
+            <button
+              onClick={() => router.push(`/${lang}/sbti`)}
+              style={{
+                marginTop: '16px',
+                padding: '8px 18px',
+                backgroundColor: '#991b1b',
+                color: 'white',
+                border: 'none',
+                borderRadius: '2px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontFamily: "'Noto Serif SC', serif",
+                transform: 'rotate(-1deg)'
+              }}
+            >
+              返回测试
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
@@ -215,228 +279,589 @@ export default function SBTIReportPage() {
   const content = reportData?.report
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: '#0a1210' }}>
+      {/* 噪点纹理背景 */}
+      <div className="fixed inset-0 pointer-events-none z-0" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.8' numOctaves='7' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        opacity: 0.22
+      }} />
+
+      {/* 古旧褪色叠加层 */}
+      <div className="fixed inset-0 pointer-events-none z-[5]" style={{
+        background: `
+          radial-gradient(ellipse at 20% 15%, rgba(180,83,9,0.06) 0%, transparent 30%),
+          radial-gradient(ellipse at 80% 80%, rgba(153,27,27,0.05) 0%, transparent 35%)
+        `
+      }} />
+
+      {/* 极端暗角效果 */}
+      <div className="fixed inset-0 pointer-events-none z-10" style={{
+        background: 'radial-gradient(ellipse at center, transparent 10%, rgba(0,0,0,0.85) 100%)'
+      }} />
+
+      {/* 左上角篆体印章 */}
+      <div style={{
+        position: 'fixed',
+        left: '28px',
+        top: '28px',
+        transform: 'rotate(-12deg)',
+        zIndex: 20
+      }}>
+        <div style={{
+          fontSize: '26px',
+          opacity: 0.6,
+          color: '#b45309',
+          textShadow: '2px 3px 5px rgba(0,0,0,0.5), 0 0 15px rgba(180,83,9,0.3)',
+          fontFamily: "'Noto Serif SC', serif",
+          letterSpacing: '6px'
+        }}>山海</div>
+        {/* 铜钉装饰 */}
+        <div style={{
+          position: 'absolute',
+          left: '-6px',
+          top: '-6px',
+          width: '8px',
+          height: '8px',
+          borderRadius: '45% 55% 50% 50%',
+          backgroundColor: '#92400e',
+          boxShadow: '1px 2px 3px rgba(0,0,0,0.5)',
+          transform: 'rotate(15deg)'
+        }} />
+      </div>
+
+      {/* Header - 不对称布局 */}
+      <header className="sticky top-0 z-20" style={{ padding: '16px 24px 16px 80px' }}>
+        <div className="flex items-center justify-between">
+          {/* 返回按钮 - 更歪 */}
           <button
             onClick={() => router.push(`/${lang}/sbti`)}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#78716c',
+              fontSize: '11px',
+              cursor: 'pointer',
+              opacity: 0.5,
+              letterSpacing: '1px',
+              transform: 'rotate(-3deg)',
+              fontFamily: "'Noto Serif SC', serif"
+            }}
           >
-            <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+            ← 返回
           </button>
 
-          <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-            {t('SBTI 报告', 'SBTI Report')}
+          {/* 标题 - 歪斜 */}
+          <h1 style={{
+            fontFamily: "'Noto Serif SC', serif",
+            fontWeight: '700',
+            fontSize: '19px',
+            color: '#f8fafc',
+            letterSpacing: '2px',
+            transform: 'rotate(1deg)',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+          }}>
+            报告
           </h1>
 
-          <div className="w-10" />
+          {/* 空白保持不对称 */}
+          <div style={{ width: '50px' }} />
         </div>
       </header>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* 生成中状态 */}
+      {/* Content - 不对称布局 */}
+      <div style={{ padding: '0 24px 60px 20px', maxWidth: '720px', marginLeft: '10px' }}>
+
+        {/* 生成中状态 - 山海经风格 */}
         {generating && (
-          <Card className="p-8 mb-8 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800">
-            <div className="text-center mb-6">
-              <Spinner size="lg" className="text-amber-500 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-                {t('报告生成中...', 'Generating Report...')}
+          <div style={{
+            backgroundColor: 'rgba(0,0,0,0.42)',
+            borderRadius: '4px',
+            padding: '24px',
+            marginBottom: '24px',
+            boxShadow: 'inset 0 3px 15px rgba(0,0,0,0.5), 4px 5px 12px rgba(0,0,0,0.35)',
+            transform: 'rotate(-1deg)',
+            borderLeft: '5px solid #b45309',
+            position: 'relative'
+          }}>
+            {/* 墨迹背景 */}
+            <div style={{
+              position: 'absolute',
+              right: '-10px',
+              top: '-10px',
+              width: '80px',
+              height: '80px',
+              background: 'radial-gradient(ellipse at 50% 50%, rgba(180,83,9,0.08) 0%, transparent 70%)',
+              filter: 'blur(6px)'
+            }} />
+
+            <div style={{ textAlign: 'center', marginBottom: '20px', transform: 'rotate(-0.5deg)' }}>
+              {/* 龙图腾 */}
+              <div style={{
+                fontFamily: "'Ma Shan Zheng', cursive",
+                fontSize: '48px',
+                color: '#dc2626',
+                textShadow: '3px 3px 0 rgba(0,0,0,0.4), 0 0 20px rgba(220,38,38,0.4)',
+                transform: 'rotate(-5deg)',
+                display: 'inline-block',
+                marginBottom: '12px'
+              }}>龍</div>
+              <h2 style={{
+                fontFamily: "'Noto Serif SC', serif",
+                fontWeight: '700',
+                fontSize: '22px',
+                color: '#f8fafc',
+                letterSpacing: '2px',
+                marginBottom: '8px'
+              }}>
+                报告生成中...
               </h2>
-              <p className="text-slate-600 dark:text-slate-400">
-                {t('预计需要3分钟，请稍候', 'Estimated 3 minutes, please wait')}
+              <p style={{
+                fontSize: '12px',
+                opacity: 0.55,
+                color: '#a8a29e',
+                letterSpacing: '2px',
+                fontFamily: "'Noto Serif SC', serif"
+              }}>
+                预计需要3分钟，请稍候
               </p>
             </div>
 
-            {/* 生成进度 */}
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
-                <span>{t('生成进度', 'Progress')}</span>
-                <span>{generationProgress}%</span>
+            {/* 生成进度 - 不对称进度条 */}
+            <div style={{ marginBottom: '20px', transform: 'rotate(0.3deg)' }}>
+              <div className="flex items-center gap-3" style={{ marginBottom: '8px' }}>
+                <span style={{
+                  fontSize: '11px',
+                  opacity: 0.5,
+                  color: '#b45309',
+                  fontFamily: "'Ma Shan Zheng', cursive",
+                  letterSpacing: '1px'
+                }}>进度</span>
+                <span style={{
+                  fontSize: '12px',
+                  opacity: 0.6,
+                  color: '#a8a29e',
+                  fontFamily: "'JetBrains Mono', monospace"
+                }}>{generationProgress}%</span>
               </div>
-              <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+              <div style={{
+                height: '4px',
+                backgroundColor: 'rgba(0,0,0,0.35)',
+                borderRadius: '2px',
+                transform: 'skewX(-2deg)'
+              }}>
                 <div
-                  className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500"
-                  style={{ width: `${generationProgress}%` }}
+                  style={{
+                    width: `${generationProgress}%`,
+                    height: '100%',
+                    background: 'linear-gradient(90deg, #991b1b, #dc2626, #b45309)',
+                    borderRadius: '2px',
+                    transition: 'width 0.5s ease-out',
+                    transform: 'skewX(2deg)'
+                  }}
                 />
               </div>
-
-              {/* 生成阶段 */}
-              <div className="mt-6 space-y-2">
-                {(GENERATION_STEPS[lang as 'zh' | 'en'] as typeof GENERATION_STEPS.zh).map((step, index) => {
-                  const isCompleted = index < generationStep
-                  const isCurrent = index === generationStep
-                  const isPending = index > generationStep
-
-                  return (
-                    <div
-                      key={step.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
-                        isCurrent ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700' :
-                        isCompleted ? 'bg-green-50 dark:bg-green-900/20' : 'bg-slate-100 dark:bg-slate-800'
-                      }`}
-                    >
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                        isCompleted ? 'bg-green-500' :
-                        isCurrent ? 'bg-amber-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'
-                      }`}>
-                        {isCompleted ? (
-                          <CheckCircle className="w-4 h-4 text-white" />
-                        ) : isCurrent ? (
-                          <Spinner size="sm" className="text-white" />
-                        ) : (
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <p className={`text-sm font-medium ${
-                          isCurrent ? 'text-amber-700 dark:text-amber-300' :
-                          isCompleted ? 'text-green-700 dark:text-green-300' : 'text-slate-500'
-                        }`}>
-                          {step.label}
-                        </p>
-                        {isCurrent && (
-                          <p className="text-xs text-slate-500 dark:text-slate-400">{step.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
             </div>
-          </Card>
+
+            {/* 生成阶段 - 错落布局 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {(GENERATION_STEPS[lang as 'zh' | 'en'] as typeof GENERATION_STEPS.zh).map((step, index) => {
+                const isCompleted = index < generationStep
+                const isCurrent = index === generationStep
+                const isPending = index > generationStep
+                const marginLeft = ['0px', '15px', '8px', '25px', '12px', '5px'][index]
+                const rotations = ['-0.5deg', '0.8deg', '-1.2deg', '0.5deg', '-0.8deg', '1deg']
+
+                return (
+                  <div
+                    key={step.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '10px 14px',
+                      backgroundColor: isCurrent ? 'rgba(180,83,9,0.12)' : isCompleted ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.15)',
+                      borderRadius: ['3px', '8px', '2px', '12px', '5px', '6px'][index],
+                      borderLeft: isCurrent ? '3px solid #dc2626' : isCompleted ? '3px solid #3d6b4f' : '3px solid transparent',
+                      transform: `rotate(${rotations[index]})`,
+                      marginLeft: marginLeft,
+                      transition: 'all 0.3s ease-out'
+                    }}
+                  >
+                    {/* 状态图标 - emoji */}
+                    <div style={{
+                      width: '22px',
+                      height: '22px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '14px',
+                      transform: isCurrent ? 'rotate(-10deg)' : 'none'
+                    }}>
+                      {isCompleted ? (
+                        <span style={{ color: '#10b981' }}>✓</span>
+                      ) : isCurrent ? (
+                        <span style={{ color: '#dc2626', animation: 'pulse 1.5s ease-in-out infinite' }}>◉</span>
+                      ) : (
+                        <span style={{ color: '#6a6a6a', opacity: 0.5 }}>○</span>
+                      )}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <p style={{
+                        fontSize: '13px',
+                        fontWeight: isCurrent ? '600' : '400',
+                        color: isCurrent ? '#f8fafc' : isCompleted ? '#b8b5ad' : '#6a6a6a',
+                        fontFamily: "'Noto Serif SC', serif",
+                        letterSpacing: '0.5px'
+                      }}>
+                        {step.label}
+                      </p>
+                      {isCurrent && (
+                        <p style={{
+                          fontSize: '11px',
+                          opacity: 0.6,
+                          color: '#a8a29e',
+                          marginTop: '2px'
+                        }}>{step.description}</p>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         )}
 
-        {/* 报告内容 */}
+        {/* 报告内容 - 极端不对称布局 */}
         {content && (
-          <div className="space-y-6">
-            {/* 人格概览 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+            {/* 人格概览 - 歪斜卡片 */}
             {reportData?.sbtiScores && (
-              <Card className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
-                  {t('人格维度分析', 'Personality Analysis')}
+              <div style={{
+                backgroundColor: 'rgba(0,0,0,0.42)',
+                borderRadius: '4px',
+                padding: '20px',
+                boxShadow: 'inset 0 2px 12px rgba(0,0,0,0.5), 3px 4px 10px rgba(0,0,0,0.3)',
+                transform: 'rotate(-0.8deg)',
+                borderTop: '4px solid #b45309',
+                position: 'relative'
+              }}>
+                {/* 墨点装饰 */}
+                <div style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '15px',
+                  fontSize: '2px',
+                  color: '#78350f',
+                  opacity: 0.4
+                }}>·</div>
+                <h2 style={{
+                  fontFamily: "'Noto Serif SC', serif",
+                  fontWeight: '700',
+                  fontSize: '17px',
+                  color: '#f8fafc',
+                  letterSpacing: '1px',
+                  marginBottom: '16px',
+                  transform: 'rotate(-0.5deg)'
+                }}>
+                  人格维度分析
                 </h2>
-                <div className="grid grid-cols-5 gap-4">
-                  {Object.entries(reportData.sbtiScores).map(([dim, score]) => (
-                    <div key={dim} className="text-center">
-                      <div className={`text-2xl font-bold ${
-                        score >= 4 ? 'text-amber-500' :
-                        score <= 2 ? 'text-green-500' : 'text-slate-600 dark:text-slate-400'
-                      }`}>
-                        {score}分
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(5, 1fr)',
+                  gap: '12px',
+                  textAlign: 'center'
+                }}>
+                  {Object.entries(reportData.sbtiScores).map(([dim, score], idx) => (
+                    <div key={dim} style={{
+                      transform: `rotate(${-1.5 + idx * 0.8}deg)`,
+                      padding: '8px 4px'
+                    }}>
+                      <div style={{
+                        fontSize: '26px',
+                        fontWeight: '700',
+                        fontFamily: "'JetBrains Mono', monospace",
+                        color: score >= 4 ? '#dc2626' : score <= 2 ? '#10b981' : '#a8a29e',
+                        textShadow: score >= 4 ? '0 0 10px rgba(220,38,38,0.4)' : 'none'
+                      }}>
+                        {score}
                       </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                      <div style={{
+                        fontSize: '10px',
+                        opacity: 0.5,
+                        color: '#78716c',
+                        marginTop: '4px',
+                        fontFamily: "'Noto Serif SC', serif",
+                        letterSpacing: '1px'
+                      }}>
                         D{dim.replace('d', '')}
                       </div>
                     </div>
                   ))}
                 </div>
-              </Card>
+              </div>
             )}
 
-            {/* 市场分析 */}
+            {/* 市场分析 - 极端不对称 */}
             {content.marketAnalysis && (
-              <Card className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                    <span className="text-amber-600 dark:text-amber-400 font-bold">1</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                    {t('市场分析', 'Market Analysis')}
-                  </h3>
+              <div style={{
+                backgroundColor: 'rgba(0,0,0,0.38)',
+                borderRadius: '6px',
+                padding: '20px',
+                boxShadow: 'inset 0 2px 12px rgba(0,0,0,0.5), -3px 4px 10px rgba(0,0,0,0.3)',
+                transform: 'rotate(0.6deg)',
+                marginLeft: '15px',
+                borderLeft: '5px solid #991b1b',
+                position: 'relative'
+              }}>
+                {/* 序号装饰 - 龙图腾代替数字 */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-8px',
+                  left: '-12px',
+                  width: '32px',
+                  height: '32px',
+                  backgroundColor: 'rgba(153,27,27,0.25)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px',
+                  transform: 'rotate(-15deg)'
+                }}>
+                  <span style={{ fontFamily: "'Ma Shan Zheng', cursive", color: '#dc2626' }}>龍</span>
                 </div>
-                <div className="space-y-4">
+
+                <h3 style={{
+                  fontFamily: "'Noto Serif SC', serif",
+                  fontWeight: '700',
+                  fontSize: '18px',
+                  color: '#f8fafc',
+                  letterSpacing: '1px',
+                  marginBottom: '14px',
+                  transform: 'rotate(-0.3deg)'
+                }}>
+                  市场分析
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {content.marketAnalysis.opportunity && (
-                    <div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
-                        {t('市场机会', 'Market Opportunity')}
+                    <div style={{ transform: 'rotate(0.2deg)' }}>
+                      <p style={{
+                        fontSize: '11px',
+                        opacity: 0.5,
+                        color: '#78716c',
+                        marginBottom: '4px',
+                        fontFamily: "'Noto Serif SC', serif",
+                        letterSpacing: '1px'
+                      }}>
+                        市场机会
                       </p>
-                      <p className="text-slate-900 dark:text-white">{content.marketAnalysis.opportunity}</p>
+                      <p style={{
+                        fontSize: '14px',
+                        color: '#e2e8f0',
+                        fontFamily: "'Noto Serif SC', serif",
+                        lineHeight: 1.7
+                      }}>{content.marketAnalysis.opportunity}</p>
                     </div>
                   )}
                   {content.marketAnalysis.personalityInsight && (
-                    <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                      <p className="text-sm text-amber-700 dark:text-amber-300">
-                        <strong>{t('【貔貅型老板】特别提示', '【Pixiu Boss】Insight')}</strong>
+                    <div style={{
+                      padding: '12px',
+                      backgroundColor: 'rgba(180,83,9,0.1)',
+                      borderRadius: '3px',
+                      borderLeft: '3px solid #b45309',
+                      transform: 'rotate(-0.5deg)'
+                    }}>
+                      <p style={{
+                        fontSize: '12px',
+                        color: '#c9a962',
+                        fontFamily: "'Noto Serif SC', serif",
+                        marginBottom: '4px'
+                      }}>
+                        <strong>【精怪洞察】</strong>
                       </p>
-                      <p className="text-sm text-amber-600 dark:text-amber-400">
+                      <p style={{
+                        fontSize: '13px',
+                        color: '#d4af37',
+                        fontFamily: "'Ma Shan Zheng', cursive",
+                        lineHeight: 1.6
+                      }}>
                         {content.marketAnalysis.personalityInsight}
                       </p>
                     </div>
                   )}
                 </div>
-              </Card>
+              </div>
             )}
 
             {/* 策略规划 */}
             {content.strategyPlan && (
-              <Card className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                    <span className="text-amber-600 dark:text-amber-400 font-bold">2</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                    {t('策略规划', 'Strategy Plan')}
-                  </h3>
-                </div>
-                <div className="space-y-4">
+              <div style={{
+                backgroundColor: 'rgba(0,0,0,0.42)',
+                borderRadius: '8px',
+                padding: '20px',
+                boxShadow: 'inset 0 2px 12px rgba(0,0,0,0.5), 4px 5px 12px rgba(0,0,0,0.35)',
+                transform: 'rotate(-1.2deg)',
+                marginRight: '20px',
+                marginLeft: '0px',
+                borderTop: '4px solid #dc2626',
+                position: 'relative'
+              }}>
+                {/* 裂痕装饰 */}
+                <div style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '12px',
+                  fontSize: '10px',
+                  color: '#78350f',
+                  opacity: 0.4,
+                  transform: 'rotate(12deg)'
+                }}>〰</div>
+
+                <h3 style={{
+                  fontFamily: "'Noto Serif SC', serif",
+                  fontWeight: '700',
+                  fontSize: '18px',
+                  color: '#f8fafc',
+                  letterSpacing: '1px',
+                  marginBottom: '14px',
+                  transform: 'rotate(0.4deg)'
+                }}>
+                  策略规划
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {content.strategyPlan.core_positioning && (
-                    <div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
-                        {t('核心定位', 'Core Positioning')}
+                    <div style={{ transform: 'rotate(-0.3deg)' }}>
+                      <p style={{
+                        fontSize: '11px',
+                        opacity: 0.5,
+                        color: '#78716c',
+                        marginBottom: '4px',
+                        fontFamily: "'Noto Serif SC', serif",
+                        letterSpacing: '1px'
+                      }}>
+                        核心定位
                       </p>
-                      <p className="text-slate-900 dark:text-white font-medium">
+                      <p style={{
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        color: '#e2e8f0',
+                        fontFamily: "'Noto Serif SC', serif"
+                      }}>
                         {content.strategyPlan.core_positioning}
                       </p>
                     </div>
                   )}
                   {content.strategyPlan.personalityInsight && (
-                    <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                      <p className="text-sm text-amber-700 dark:text-amber-300">
-                        <strong>{t('【人格特别提示】', '【Personality Insight】')}</strong>
+                    <div style={{
+                      padding: '12px',
+                      backgroundColor: 'rgba(180,83,9,0.1)',
+                      borderRadius: '5px',
+                      transform: 'rotate(0.5deg)'
+                    }}>
+                      <p style={{
+                        fontSize: '12px',
+                        color: '#c9a962',
+                        fontFamily: "'Noto Serif SC', serif"
+                      }}>
+                        <strong>【策略洞察】</strong>
                       </p>
-                      <p className="text-sm text-amber-600 dark:text-amber-400">
+                      <p style={{
+                        fontSize: '13px',
+                        color: '#d4af37',
+                        fontFamily: "'Ma Shan Zheng', cursive",
+                        marginTop: '4px'
+                      }}>
                         {content.strategyPlan.personalityInsight}
                       </p>
                     </div>
                   )}
                   {content.strategyPlan.personalityWarning && (
-                    <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                      <p className="text-sm text-red-700 dark:text-red-300">
-                        <strong>{t('【避雷建议】', '【Warning】')}</strong>
+                    <div style={{
+                      padding: '12px',
+                      backgroundColor: 'rgba(153,27,27,0.15)',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(220,38,38,0.3)',
+                      transform: 'rotate(-0.8deg)'
+                    }}>
+                      <p style={{
+                        fontSize: '12px',
+                        color: '#dc2626',
+                        fontFamily: "'Noto Serif SC', serif"
+                      }}>
+                        <strong>【避雷建议】</strong>
                       </p>
-                      <p className="text-sm text-red-600 dark:text-red-400">
+                      <p style={{
+                        fontSize: '13px',
+                        color: '#ef4444',
+                        fontFamily: "'Ma Shan Zheng', cursive",
+                        marginTop: '4px'
+                      }}>
                         {content.strategyPlan.personalityWarning}
                       </p>
                     </div>
                   )}
                 </div>
-              </Card>
+              </div>
             )}
 
             {/* 执行计划 */}
             {content.executionPlan && (
-              <Card className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                    <span className="text-amber-600 dark:text-amber-400 font-bold">3</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                    {t('执行计划', 'Execution Plan')}
-                  </h3>
-                </div>
-                <div className="space-y-4">
+              <div style={{
+                backgroundColor: 'rgba(0,0,0,0.38)',
+                borderRadius: '3px',
+                padding: '20px',
+                boxShadow: 'inset 0 2px 12px rgba(0,0,0,0.5), 3px 4px 10px rgba(0,0,0,0.3)',
+                transform: 'rotate(0.9deg)',
+                marginLeft: '25px',
+                borderRight: '5px solid #10b981',
+                position: 'relative'
+              }}>
+                <h3 style={{
+                  fontFamily: "'Noto Serif SC', serif",
+                  fontWeight: '700',
+                  fontSize: '18px',
+                  color: '#f8fafc',
+                  letterSpacing: '1px',
+                  marginBottom: '14px',
+                  transform: 'rotate(-0.4deg)'
+                }}>
+                  执行计划
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {content.executionPlan.quick_wins && content.executionPlan.quick_wins.length > 0 && (
-                    <div>
-                      <p className="text-sm text-green-600 dark:text-green-400 mb-2 flex items-center gap-1">
-                        <CheckCircle2 className="w-4 h-4" />
-                        {t('快速见效', 'Quick Wins')}
+                    <div style={{ transform: 'rotate(0.2deg)' }}>
+                      <p style={{
+                        fontSize: '12px',
+                        color: '#10b981',
+                        marginBottom: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontFamily: "'Noto Serif SC', serif"
+                      }}>
+                        <span style={{ fontSize: '14px' }}>✓</span> 快速见效
                       </p>
-                      <ul className="space-y-1">
+                      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                         {content.executionPlan.quick_wins.map((item: string, i: number) => (
-                          <li key={i} className="text-slate-900 dark:text-white text-sm flex items-start gap-2">
-                            <span className="text-amber-500">•</span>
+                          <li key={i} style={{
+                            fontSize: '13px',
+                            color: '#e2e8f0',
+                            fontFamily: "'Noto Serif SC', serif",
+                            paddingLeft: '12px',
+                            position: 'relative',
+                            marginBottom: '6px',
+                            transform: `rotate(${-0.3 + i * 0.2}deg)`
+                          }}>
+                            <span style={{
+                              position: 'absolute',
+                              left: '0',
+                              color: '#c9a962',
+                              fontSize: '10px'
+                            }}>•</span>
                             {item}
                           </li>
                         ))}
@@ -444,77 +869,268 @@ export default function SBTIReportPage() {
                     </div>
                   )}
                   {content.executionPlan.personalityInsight && (
-                    <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                      <p className="text-sm text-amber-700 dark:text-amber-300">
-                        <strong>{t('【执行优势】', '【Execution Advantage】')}</strong>
+                    <div style={{
+                      padding: '12px',
+                      backgroundColor: 'rgba(16,185,129,0.08)',
+                      borderRadius: '6px',
+                      transform: 'rotate(-0.6deg)'
+                    }}>
+                      <p style={{
+                        fontSize: '12px',
+                        color: '#10b981',
+                        fontFamily: "'Noto Serif SC', serif"
+                      }}>
+                        <strong>【执行优势】</strong>
                       </p>
-                      <p className="text-sm text-amber-600 dark:text-amber-400">
+                      <p style={{
+                        fontSize: '13px',
+                        color: '#34d399',
+                        fontFamily: "'Ma Shan Zheng', cursive",
+                        marginTop: '4px'
+                      }}>
                         {content.executionPlan.personalityInsight}
                       </p>
                     </div>
                   )}
                 </div>
-              </Card>
+              </div>
             )}
 
             {/* 财务分析 */}
             {content.financialPlan && (
-              <Card className="p-6 border-amber-200 dark:border-amber-800">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                    <span className="text-amber-600 dark:text-amber-400 font-bold">4</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                    {t('财务分析', 'Financial Analysis')}
-                  </h3>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+              <div style={{
+                backgroundColor: 'rgba(0,0,0,0.45)',
+                borderRadius: '10px',
+                padding: '20px',
+                boxShadow: 'inset 0 2px 12px rgba(0,0,0,0.5), -4px 5px 14px rgba(0,0,0,0.35)',
+                transform: 'rotate(-0.5deg)',
+                marginLeft: '8px',
+                borderBottom: '4px solid #c9a962',
+                position: 'relative'
+              }}>
+                {/* 墨点装饰 */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: '12px',
+                  right: '15px',
+                  fontSize: '3px',
+                  color: '#92400e',
+                  opacity: 0.35
+                }}>·</div>
+
+                <h3 style={{
+                  fontFamily: "'Noto Serif SC', serif",
+                  fontWeight: '700',
+                  fontSize: '18px',
+                  color: '#f8fafc',
+                  letterSpacing: '1px',
+                  marginBottom: '14px',
+                  transform: 'rotate(0.3deg)'
+                }}>
+                  财务分析
+                </h3>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '14px'
+                }}>
                   {content.financialPlan.investment_estimate && (
-                    <div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
-                        {t('投资估算', 'Investment Estimate')}
+                    <div style={{ transform: 'rotate(-0.5deg)' }}>
+                      <p style={{
+                        fontSize: '11px',
+                        opacity: 0.5,
+                        color: '#78716c',
+                        marginBottom: '4px',
+                        fontFamily: "'Noto Serif SC', serif",
+                        letterSpacing: '1px'
+                      }}>
+                        投资估算
                       </p>
-                      <p className="text-slate-900 dark:text-white font-medium">
+                      <p style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#e2e8f0',
+                        fontFamily: "'Noto Serif SC', serif"
+                      }}>
                         {content.financialPlan.investment_estimate}
                       </p>
                     </div>
                   )}
                   {content.financialPlan.break_even && (
-                    <div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
-                        {t('回本时间', 'Break-even')}
+                    <div style={{ transform: 'rotate(0.8deg)' }}>
+                      <p style={{
+                        fontSize: '11px',
+                        opacity: 0.5,
+                        color: '#78716c',
+                        marginBottom: '4px',
+                        fontFamily: "'Noto Serif SC', serif",
+                        letterSpacing: '1px'
+                      }}>
+                        回本时间
                       </p>
-                      <p className="text-slate-900 dark:text-white">
+                      <p style={{
+                        fontSize: '14px',
+                        color: '#e2e8f0',
+                        fontFamily: "'JetBrains Mono', monospace"
+                      }}>
                         {content.financialPlan.break_even}
                       </p>
                     </div>
                   )}
                   {content.financialPlan.personalityInsight && (
-                    <div className="col-span-2 mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                      <p className="text-sm text-amber-700 dark:text-amber-300">
-                        <strong>{t('【财务人格视角】', '【Financial Personality View】')}</strong>
+                    <div style={{
+                      gridColumn: 'span 2',
+                      padding: '12px',
+                      backgroundColor: 'rgba(201,169,98,0.1)',
+                      borderRadius: '4px',
+                      borderLeft: '3px solid #c9a962',
+                      transform: 'rotate(0.2deg)'
+                    }}>
+                      <p style={{
+                        fontSize: '12px',
+                        color: '#c9a962',
+                        fontFamily: "'Noto Serif SC', serif"
+                      }}>
+                        <strong>【财务人格视角】</strong>
                       </p>
-                      <p className="text-sm text-amber-600 dark:text-amber-400">
+                      <p style={{
+                        fontSize: '13px',
+                        color: '#d4af37',
+                        fontFamily: "'Ma Shan Zheng', cursive",
+                        marginTop: '4px'
+                      }}>
                         {content.financialPlan.personalityInsight}
                       </p>
                     </div>
                   )}
                 </div>
-              </Card>
+              </div>
             )}
           </div>
         )}
 
-        {/* 未解锁状态 - 不应该出现，因为前端会检查 shareStatus */}
+        {/* 未解锁状态 */}
         {!content && !generating && (
-          <Card className="p-8 text-center">
-            <Lock className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-600 dark:text-slate-400">
-              {t('报告未解锁，请先分享或付费', 'Report locked. Please share or pay to unlock.')}
+          <div style={{
+            backgroundColor: 'rgba(0,0,0,0.42)',
+            borderRadius: '5px',
+            padding: '28px',
+            textAlign: 'center',
+            boxShadow: 'inset 0 2px 12px rgba(0,0,0,0.5), 3px 4px 10px rgba(0,0,0,0.3)',
+            transform: 'rotate(-0.5deg)'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px', transform: 'rotate(-8deg)', display: 'inline-block' }}>🔒</div>
+            <p style={{
+              fontSize: '14px',
+              opacity: 0.6,
+              color: '#a8a29e',
+              fontFamily: "'Noto Serif SC', serif",
+              letterSpacing: '1px'
+            }}>
+              报告未解锁，请先分享或付费
             </p>
-          </Card>
+          </div>
         )}
       </div>
+
+      {/* 装饰元素 */}
+      {/* 右侧装饰线群 */}
+      <div style={{
+        position: 'fixed',
+        right: '6px',
+        top: '30%',
+        width: '2px',
+        height: '100px',
+        background: 'linear-gradient(to bottom, transparent, #b45309, transparent)',
+        transform: 'rotate(8deg)',
+        opacity: 0.15,
+        zIndex: 15
+      }} />
+      <div style={{
+        position: 'fixed',
+        right: '14px',
+        top: '45%',
+        width: '1px',
+        height: '70px',
+        background: 'linear-gradient(to bottom, transparent, #991b1b, transparent)',
+        transform: 'rotate(-5deg)',
+        opacity: 0.1,
+        zIndex: 15
+      }} />
+
+      {/* 右下角甲骨文碎片 */}
+      <div style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        opacity: 0.2,
+        color: '#b45309',
+        fontSize: '16px',
+        transform: 'rotate(20deg)',
+        letterSpacing: '4px',
+        zIndex: 15,
+        textShadow: '2px 2px 4px rgba(0,0,0,0.4)'
+      }}>
+        ◯◻◽◾▫
+      </div>
+
+      {/* 墨点装饰 */}
+      <div style={{
+        position: 'fixed',
+        left: '12px',
+        bottom: '60px',
+        fontSize: '4px',
+        color: '#b45309',
+        opacity: 0.2,
+        letterSpacing: '3px',
+        zIndex: 15
+      }}>
+        ·　··　···　·　··　·　···　·　··　·　···　·　··
+      </div>
+      <div style={{
+        position: 'fixed',
+        right: '50px',
+        bottom: '40px',
+        fontSize: '3px',
+        color: '#92400e',
+        opacity: 0.12,
+        zIndex: 15
+      }}>·</div>
+
+      {/* 角落破损暗示 */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '80px',
+        height: '60px',
+        background: 'radial-gradient(circle at top left, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.15) 30%, transparent 55%)',
+        zIndex: 12,
+        pointerEvents: 'none'
+      }} />
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        right: 0,
+        width: '100px',
+        height: '70px',
+        background: 'radial-gradient(circle at bottom right, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.12) 25%, transparent 50%)',
+        zIndex: 12,
+        pointerEvents: 'none'
+      }} />
+
+      {/* 裂痕装饰 */}
+      <div style={{
+        position: 'fixed',
+        left: '60px',
+        top: '40%',
+        fontSize: '8px',
+        color: '#78350f',
+        opacity: 0.12,
+        transform: 'rotate(15deg)',
+        zIndex: 15
+      }}>〰</div>
     </div>
   )
 }

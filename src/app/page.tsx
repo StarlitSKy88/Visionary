@@ -201,18 +201,19 @@ export default function HomePage() {
           <div style={{
             position: 'relative',
             zIndex: 1,
-            transform: 'rotate(12deg)',
+            transform: 'rotate(18deg) translateX(-15px) translateY(8px)',
             filter: 'drop-shadow(2px 3px 4px rgba(0,0,0,0.5))'
           }}>
-            {/* 龙身文字化处理 */}
+            {/* 龙身文字化处理 - 更歪斜更不规整 */}
             <div style={{
               fontFamily: "'Ma Shan Zheng', cursive",
-              fontSize: '42px',
+              fontSize: '52px',
               color: '#dc2626',
-              textShadow: '3px 3px 0 rgba(0,0,0,0.4), 0 0 15px rgba(220,38,38,0.4), 0 0 30px rgba(180,83,9,0.2)',
-              transform: 'rotate(-5deg)',
+              textShadow: '4px 4px 0 rgba(0,0,0,0.4), 0 0 20px rgba(220,38,38,0.5), 0 0 40px rgba(180,83,9,0.25)',
+              transform: 'rotate(-12deg) skewX(-8deg)',
               display: 'inline-block',
-              letterSpacing: '-2px'
+              letterSpacing: '-4px',
+              marginLeft: '-20px'
             }}>龍</div>
             {/* 龙角符号 */}
             <div style={{
@@ -333,18 +334,17 @@ export default function HomePage() {
             transform: 'rotate(-5deg)',
             borderLeft: '6px solid #b45309',
             opacity: loaded ? 1 : 0,
-            transition: 'opacity 0.8s ease-out 0.5s',
-            position: 'relative'
+            transition: 'opacity 0.8s ease-out 0.5s'
           }}>
             {/* 残缺边框暗示 */}
             <div style={{ position: 'absolute', top: '0', right: '0', width: '20px', height: '3px', background: 'rgba(0,0,0,0.8)' }} />
             <div style={{ position: 'absolute', bottom: '0', right: '0', width: '15px', height: '2px', background: 'rgba(0,0,0,0.6)' }} />
             <p style={{
               fontFamily: "'Ma Shan Zheng', cursive",
-              fontSize: '8px',
+              fontSize: '13px',
               color: '#f8fafc',
-              lineHeight: 2.2,
-              letterSpacing: '3px',
+              lineHeight: 1.8,
+              letterSpacing: '2px',
               textShadow: '1px 2px 3px rgba(0,0,0,0.6), 0 0 12px rgba(180,83,9,0.1)'
             }}>
               36种精怪人格
@@ -372,9 +372,10 @@ export default function HomePage() {
           }}>
             <p style={{
               fontFamily: "'Ma Shan Zheng', cursive",
-              fontSize: '9px',
+              fontSize: '14px',
               color: '#f8fafc',
-              lineHeight: 2.2,
+              lineHeight: 1.7,
+              letterSpacing: '1px',
               textShadow: '1px 2px 3px rgba(0,0,0,0.6)'
             }}>
               人格增强报告
@@ -401,9 +402,10 @@ export default function HomePage() {
           }}>
             <p style={{
               fontFamily: "'Ma Shan Zheng', cursive",
-              fontSize: '8px',
+              fontSize: '12px',
               color: '#f8fafc',
-              lineHeight: 2.2,
+              lineHeight: 1.8,
+              letterSpacing: '1px',
               textShadow: '1px 2px 3px rgba(0,0,0,0.6)'
             }}>
               专属赚钱建议
