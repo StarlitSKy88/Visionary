@@ -35,6 +35,8 @@ export function initSchema(database: Database) {
       share_opens INTEGER DEFAULT 0,
       share_unlocked INTEGER DEFAULT 0,
       status TEXT DEFAULT 'active',
+      paid_trade_no TEXT,
+      paid_transaction_id TEXT,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );
@@ -82,6 +84,8 @@ export interface SessionData {
   shareOpens: number
   shareUnlocked: boolean
   status: string
+  paidTradeNo?: string
+  paidTransactionId?: string
   createdAt: string
 }
 
@@ -195,4 +199,19 @@ export async function updateShareOpen(sessionId: string): Promise<{opens: number
   saveDb(database)
 
   return { opens, unlocked }
+}
+
+export async function updateSessionPaid(
+  sessionId: string,
+  tradeNo: string,
+  transactionId: string
+): Promise<void> {
+  const database = await getDb()
+
+  database.run(
+    `UPDATE sbti_sessions SET status = 'paid', paid_trade_no = ?, paid_transaction_id = ?, updated_at = datetime('now') WHERE id = ?`,
+    [tradeNo, transactionId, sessionId]
+  )
+
+  saveDb(database)
 }
