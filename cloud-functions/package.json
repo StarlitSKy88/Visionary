@@ -1,0 +1,10 @@
+{
+  "name": "ceo-ti-cloud-functions",
+  "version": "1.0.0",
+  "description": "CEO-TI 腾讯云函数版本",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "^2.6.3",
+    "tcb-admin-node": "^1.8.5"
+  }
+}

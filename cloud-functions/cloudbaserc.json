@@ -1,0 +1,23 @@
+{
+  "envId": "x1aoyang-1-5gimfr95c320432c",
+  "framework": {
+    "name": "ceo-ti",
+    "functionRoot": "functions"
+  },
+  "functions": [
+    {
+      "name": "sbti-api",
+      "timeout": 10,
+      "memorySize": 256,
+      "envVariables": {
+        "WECHAT_MINI_APPID": "wxbd555f94c0301a61",
+        "WECHAT_MINI_APPSECRET": "7de5c0cf846928465b53f8576a7c459e",
+        "WECHAT_PAY_MCHID": "1632505758",
+        "WECHAT_PAY_API_KEY": "kNdLP5ObGYatddENHwEVZj/Zvwge+mRSMGYke9PAll0="
+      },
+      "handler": "index.main",
+      "runtime": "Nodejs20.19",
+      "router": "sbti-api"
+    }
+  ]
+}

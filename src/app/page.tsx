@@ -1,15 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 export default function HomePage() {
-  const [loaded, setLoaded] = useState(false)
-
-  useEffect(() => {
-    setLoaded(true)
-  }, [])
-
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: '#080a08' }}>
       {/* === 极高频噪点纹理 - 宣纸/羊皮纸感 === */}
@@ -96,7 +89,7 @@ export default function HomePage() {
         transform: 'rotate(4deg)',
         zIndex: 20
       }}>
-        <Link href="/zh/privacy" className="hover:opacity-30 transition-opacity" style={{
+        <Link href="/privacy" className="hover:opacity-30 transition-opacity" style={{
           color: '#78716c',
           fontSize: '7px',
           letterSpacing: '5px',
@@ -106,7 +99,7 @@ export default function HomePage() {
           隐私
         </Link>
         <span style={{ color: '#78716c', fontSize: '7px', opacity: 0.15, margin: '0 10px' }}>·</span>
-        <Link href="/zh/terms" className="hover:opacity-30 transition-opacity" style={{
+        <Link href="/terms" className="hover:opacity-30 transition-opacity" style={{
           color: '#78716c',
           fontSize: '7px',
           letterSpacing: '5px',
@@ -260,7 +253,7 @@ export default function HomePage() {
 
         {/* 大标题 - 墨迹晕染阴影 */}
         <div style={{
-          opacity: loaded ? 1 : 0,
+          opacity: 1,
           transition: 'opacity 0.8s ease-out',
           transform: 'rotate(-3deg) translateX(-8px)',
           marginLeft: '-20px',
@@ -298,7 +291,7 @@ export default function HomePage() {
 
         {/* 副标题 */}
         <div style={{
-          opacity: loaded ? 1 : 0,
+          opacity: 1,
           transition: 'opacity 0.8s ease-out 0.3s',
           marginTop: '22px',
           marginLeft: '60px',
@@ -335,7 +328,7 @@ export default function HomePage() {
             boxShadow: 'inset 0 4px 18px rgba(0,0,0,0.8), 5px 6px 14px rgba(0,0,0,0.6), -1px -1px 4px rgba(180,83,9,0.25)',
             transform: 'rotate(-5deg)',
             borderLeft: '6px solid #b45309',
-            opacity: loaded ? 1 : 0,
+            opacity: 1,
             transition: 'opacity 0.8s ease-out 0.5s'
           }}>
             {/* 残缺边框暗示 */}
@@ -369,7 +362,7 @@ export default function HomePage() {
             boxShadow: 'inset 0 5px 20px rgba(0,0,0,0.75), -5px 7px 16px rgba(0,0,0,0.6), 3px 3px 8px rgba(180,83,9,0.2)',
             transform: 'rotate(4.5deg)',
             borderRight: '5px solid rgba(180,83,9,0.7)',
-            opacity: loaded ? 1 : 0,
+            opacity: 1,
             transition: 'opacity 0.8s ease-out 0.65s'
           }}>
             <p style={{
@@ -399,7 +392,7 @@ export default function HomePage() {
             boxShadow: 'inset 0 5px 22px rgba(0,0,0,0.8), 6px 8px 18px rgba(0,0,0,0.65), -1px 0 4px rgba(220,38,38,0.25)',
             transform: 'rotate(-3deg)',
             borderTop: '5px solid rgba(220,38,38,0.65)',
-            opacity: loaded ? 1 : 0,
+            opacity: 1,
             transition: 'opacity 0.8s ease-out 0.8s'
           }}>
             <p style={{
@@ -420,7 +413,7 @@ export default function HomePage() {
 
         {/* 开始测试按钮 - 印章篆刻+墨迹 */}
         <div style={{
-          opacity: loaded ? 1 : 0,
+          opacity: 1,
           transition: 'opacity 0.8s ease-out 0.95s',
           transform: 'rotate(-4deg)',
           marginTop: '16px',
@@ -461,7 +454,7 @@ export default function HomePage() {
 
         {/* 底部文字 */}
         <div style={{
-          opacity: loaded ? 1 : 0,
+          opacity: 1,
           transition: 'opacity 0.8s ease-out 1.1s',
           marginTop: '10px',
           transform: 'rotate(1deg)'

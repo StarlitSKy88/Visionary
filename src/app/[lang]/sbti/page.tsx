@@ -24,6 +24,7 @@ interface CardData {
   good_for: string
   avoid: string
   emoji: string
+  cardImage: string
   tags: { icon: string; text: string }[]
   money_score: number
   share_texts: {
@@ -64,6 +65,9 @@ export default function SBTIPage() {
   const [copied, setCopied] = useState(false)
   const [questionVisible, setQuestionVisible] = useState(true)
   const [questionEntering, setQuestionEntering] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [paymentLoading, setPaymentLoading] = useState(false)
+  const [qrCodeUrl, setQrCodeUrl] = useState('')
 
   const refCode = searchParams.get('ref')
 
@@ -121,7 +125,7 @@ export default function SBTIPage() {
   const fetchShareStatus = async () => {
     if (!shareCode) return
     try {
-      const res = await fetch(`/api/sbti/status/${shareCode}`)
+      const res = await fetch(`/api/share-status/${shareCode}`)
       if (res.ok) {
         const data = await res.json()
         setShareStatus(data)
@@ -131,11 +135,36 @@ export default function SBTIPage() {
     }
   }
 
+  const handlePayment = async () => {
+    if (!sessionId) return
+    setPaymentLoading(true)
+    try {
+      const res = await fetch('/api/sbti/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, price: 99 }),
+      })
+      if (!res.ok) throw new Error('Failed to create payment')
+      const data = await res.json()
+      if (data.success && data.data) {
+        setQrCodeUrl(data.data.qrCodeUrl)
+        setShowPaymentModal(true)
+      }
+    } catch (err) {
+      setError('支付创建失败')
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
+
+  const [aiThinking, setAiThinking] = useState('')
+
   const handleAnswer = async (questionId: number, answerKey: string) => {
     if (!sessionId) return
 
     const newAnswers = { ...answers, [questionId]: answerKey }
     setAnswers(newAnswers)
+    setAiThinking('')
 
     setQuestionVisible(false)
     setQuestionEntering(true)
@@ -154,8 +183,9 @@ export default function SBTIPage() {
           if (data.completed) {
             await completeTest()
           } else {
+            setAiThinking(data.aiThinking || '')
             setCurrentQuestionId(data.currentQuestion)
-            setQuestions(prev => [...prev, data.question])
+            setQuestions(prev => [...prev, data.nextQuestion])
           }
         } catch (err) {
           setError('提交失败，请重试')
@@ -293,7 +323,7 @@ export default function SBTIPage() {
             letterSpacing: '3px',
             opacity: 0.45
           }}
-          onClick={() => router.push('/zh/privacy')}
+          onClick={() => router.push('/privacy')}
         >
           隐私
         </span>
@@ -306,7 +336,7 @@ export default function SBTIPage() {
             letterSpacing: '3px',
             opacity: 0.45
           }}
-          onClick={() => router.push('/zh/terms')}
+          onClick={() => router.push('/terms')}
         >
           协议
         </span>
@@ -646,7 +676,42 @@ export default function SBTIPage() {
                   </div>
                 )
               })}
-            </div>
+</div>
+
+            {/* AI思考评论 - 墨迹风格 */}
+            {aiThinking && (
+              <div style={{
+                marginTop: '20px',
+                maxWidth: '400px',
+                padding: '12px 16px',
+                backgroundColor: 'rgba(0,0,0,0.3)',
+                borderRadius: '6px',
+                borderLeft: '3px solid #b45309',
+                transform: 'rotate(-0.5deg)',
+                position: 'relative'
+              }}>
+                {/* 墨迹背景 */}
+                <div style={{
+                  position: 'absolute',
+                  left: '-5px',
+                  top: '-5px',
+                  right: '-5px',
+                  bottom: '-5px',
+                  background: 'radial-gradient(ellipse at 30% 50%, rgba(180,83,9,0.04) 0%, transparent 70%)',
+                  filter: 'blur(3px)'
+                }} />
+                <div style={{
+                  fontSize: '11px',
+                  color: '#a8a29e',
+                  fontFamily: "'Ma Shan Zheng', cursive",
+                  letterSpacing: '1px',
+                  lineHeight: 1.6
+                }}>
+                  <span style={{ color: '#b45309', marginRight: '8px' }}>💭</span>
+                  {aiThinking}
+                </div>
+              </div>
+            )}
 
             {/* 底部按钮 - 更歪+skewX(-8deg) */}
             <div className="flex items-center justify-between" style={{
@@ -682,25 +747,36 @@ export default function SBTIPage() {
                 退出测试
               </button>
 
-              {progress > 0 && (
+              {progress > 0 && questions.length > 1 && (
                 <button
+                  onClick={() => {
+                    // 返回上一题：移除最后一题
+                    const newQuestions = questions.slice(0, -1)
+                    setQuestions(newQuestions)
+                    setAiThinking('')
+                    // 移除上一题的答案
+                    const lastQuestionId = questions[questions.length - 1].id
+                    const newAnswers = { ...answers }
+                    delete newAnswers[lastQuestionId]
+                    setAnswers(newAnswers)
+                    setCurrentQuestionId(newQuestions[newQuestions.length - 1].id)
+                  }}
                   style={{
                     width: '160px',
                     height: '46px',
-                    backgroundColor: '#991b1b',
-                    color: 'white',
+                    backgroundColor: 'transparent',
+                    color: '#a8a29e',
                     fontWeight: '700',
                     fontSize: '14px',
-                    border: 'none',
+                    border: '2px solid #4a4a4a',
                     borderRadius: '2px',
                     cursor: 'pointer',
                     letterSpacing: '3px',
-                    boxShadow: '3px 3px 0 rgba(0,0,0,0.4), 2px 2px 8px rgba(0,0,0,0.3), inset 1px 1px 0 rgba(255,255,255,0.08)',
+                    boxShadow: '2px 2px 0 rgba(0,0,0,0.3)',
                     transform: 'rotate(-3deg) skewX(-8deg)',
-                    textShadow: '2px 2px 3px rgba(0,0,0,0.5)'
                   }}
                 >
-                  下一题
+                  上一题
                 </button>
               )}
             </div>
@@ -760,7 +836,7 @@ export default function SBTIPage() {
               </p>
             </div>
 
-            {/* 神兽展示 - 龙图腾代替emoji */}
+            {/* 人格卡片配图 */}
             <div className="flex items-start gap-5" style={{
               marginBottom: '28px',
               transform: 'rotate(-1deg)'
@@ -781,37 +857,20 @@ export default function SBTIPage() {
                   transform: 'translate(-50%, -50%)',
                   filter: 'blur(4px)'
                 }} />
-                {/* 龙图腾文字 */}
-                <div style={{
-                  fontFamily: "'Ma Shan Zheng', cursive",
-                  fontSize: '58px',
-                  color: '#dc2626',
-                  textShadow: '3px 3px 0 rgba(0,0,0,0.4), 0 0 15px rgba(220,38,38,0.4), 0 0 30px rgba(180,83,9,0.2)',
-                  transform: 'rotate(-5deg)',
-                  display: 'inline-block',
-                  filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.4))'
-                }}>龍</div>
-                {/* 龙角符号 */}
-                <div style={{
-                  position: 'absolute',
-                  top: '-8px',
-                  right: '-6px',
-                  fontSize: '12px',
-                  color: '#b45309',
-                  opacity: 0.6,
-                  transform: 'rotate(20deg)',
-                  fontFamily: "'Ma Shan Zheng', cursive"
-                }}>角</div>
-                {/* 裂痕 */}
-                <div style={{
-                  position: 'absolute',
-                  bottom: '5px',
-                  right: '10px',
-                  fontSize: '10px',
-                  color: '#78350f',
-                  opacity: 0.5,
-                  transform: 'rotate(-12deg)'
-                }}>〰</div>
+                {/* 人格卡片图片 */}
+                <img
+                  src={`/images/personality/${card.cardImage}`}
+                  alt={card.name}
+                  style={{
+                    width: '150px',
+                    height: '200px',
+                    objectFit: 'cover',
+                    borderRadius: '4px 12px 4px 12px',
+                    transform: 'rotate(-3deg)',
+                    filter: 'drop-shadow(3px 3px 6px rgba(0,0,0,0.5))',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.4)'
+                  }}
+                />
               </div>
               <div className="flex-1" style={{ transform: 'rotate(0.5deg)', position: 'relative' }}>
                 {/* 墨迹背景 */}
@@ -1050,6 +1109,45 @@ export default function SBTIPage() {
                   </button>
                 ))}
               </div>
+
+              {/* 微信支付解锁 */}
+              {!shareStatus?.unlocked && (
+                <div style={{ marginTop: '16px', position: 'relative' }}>
+                  <div style={{
+                    fontSize: '10px',
+                    color: '#78716c',
+                    opacity: 0.5,
+                    textAlign: 'center',
+                    marginBottom: '8px',
+                    letterSpacing: '1px'
+                  }}>或</div>
+                  <button
+                    onClick={() => handlePayment()}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      backgroundColor: '#07c160',
+                      color: 'white',
+                      fontWeight: '700',
+                      fontSize: '13px',
+                      border: 'none',
+                      borderRadius: '3px',
+                      cursor: 'pointer',
+                      letterSpacing: '2px',
+                      boxShadow: '3px 3px 0 rgba(0,0,0,0.3)',
+                      transform: 'rotate(0.5deg)',
+                      fontFamily: "'Noto Serif SC', serif",
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <span style={{ fontSize: '16px' }}>💳</span>
+                    微信支付解锁（¥9.9）
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* 底部操作 - 更歪 */}
@@ -1205,6 +1303,98 @@ export default function SBTIPage() {
       {/* 墨点群 */}
       <div className="fixed left-1/4 top-1/4 z-20" style={{ fontSize: '2px', color: '#78350f', opacity: 0.06, transform: 'rotate(30deg)' }}>·</div>
       <div className="fixed right-1/3 top-40% z-20" style={{ fontSize: '3px', color: '#92400e', opacity: 0.05, transform: 'rotate(-18deg)' }}>·</div>
+
+      {/* 支付二维码模态框 */}
+      {showPaymentModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
+          onClick={() => setShowPaymentModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              border: '2px solid #07c160',
+              borderRadius: '4px',
+              padding: '32px',
+              maxWidth: '320px',
+              width: '90%',
+              transform: 'rotate(-1deg)',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.6)'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <h3 style={{
+                fontSize: '18px',
+                fontWeight: '700',
+                color: '#07c160',
+                marginBottom: '8px',
+                fontFamily: "'Noto Serif SC', serif",
+                letterSpacing: '3px'
+              }}>微信支付</h3>
+              <p style={{ fontSize: '24px', color: '#dc2626', fontWeight: '700' }}>¥9.9</p>
+              <p style={{ fontSize: '11px', color: '#78716c', marginTop: '4px' }}>扫描下方二维码完成支付</p>
+            </div>
+
+            {/* 二维码 */}
+            <div style={{
+              backgroundColor: 'white',
+              padding: '16px',
+              borderRadius: '4px',
+              display: 'flex',
+              justifyContent: 'center',
+              marginBottom: '20px'
+            }}>
+              {qrCodeUrl ? (
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeUrl)}`}
+                  alt="支付二维码"
+                  style={{ width: '200px', height: '200px' }}
+                />
+              ) : (
+                <div style={{
+                  width: '200px',
+                  height: '200px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#78716c'
+                }}>
+                  加载中...
+                </div>
+              )}
+            </div>
+
+            <div style={{
+              textAlign: 'center',
+              fontSize: '11px',
+              color: '#78716c',
+              marginBottom: '16px'
+            }}>
+              <p>支付完成后报告将自动解锁</p>
+              <p style={{ marginTop: '4px', opacity: 0.6 }}>二维码有效期30分钟</p>
+            </div>
+
+            <button
+              onClick={() => setShowPaymentModal(false)}
+              style={{
+                width: '100%',
+                padding: '10px',
+                backgroundColor: 'transparent',
+                color: '#78716c',
+                fontSize: '12px',
+                border: '1px solid #444',
+                borderRadius: '2px',
+                cursor: 'pointer',
+                letterSpacing: '1px'
+              }}
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

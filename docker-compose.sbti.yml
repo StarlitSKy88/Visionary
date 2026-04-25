@@ -1,0 +1,62 @@
+# SBTI Docker Compose - 隔离部署
+version: '3.8'
+
+services:
+  sbti:
+    build:
+      context: .
+      dockerfile: Dockerfile.sbti
+    container_name: sbti-h5
+    ports:
+      - "3080:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      # MongoDB连接（复用云数据库）
+      - MONGODB_URI=${MONGODB_URI:-mongodb://localhost:27017}
+      - DB_NAME=${DB_NAME:-sbti}
+      # 腾讯云配置
+      - TENCENT_SECRET_ID=${TENCENT_SECRET_ID}
+      - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY}
+      - TENCENT_APPID=${TENCENT_APPID}
+      # 微信支付
+      - WECHAT_MINI_APPID=${WECHAT_MINI_APPID}
+      - WECHAT_MCHID=${WECHAT_MCHID}
+      - WECHAT_APIKEY=${WECHAT_APIKEY}
+      # 微信登录
+      - WECHAT_APP_SECRET=${WECHAT_APP_SECRET}
+    volumes:
+      - sbti-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - sbti-network
+
+  # 可选：MongoDB容器（如果不用云数据库）
+  # mongodb:
+  #   image: mongo:7
+  #   container_name: sbti-mongo
+  #   ports:
+  #     - "27018:27017"
+  #   environment:
+  #     - MONGO_INITDB_ROOT_USERNAME=sbti
+  #     - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-sbti123}
+  #     - MONGO_INITDB_DATABASE=sbti
+  #   volumes:
+  #     - mongodb-data:/data/db
+  #   restart: unless-stopped
+  #   networks:
+  #     - sbti-network
+
+networks:
+  sbti-network:
+    driver: bridge
+    name: sbti-network
+
+volumes:
+  sbti-data:
+    name: sbti-data

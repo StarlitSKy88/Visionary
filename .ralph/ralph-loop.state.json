@@ -1,0 +1,13 @@
+{
+  "active": true,
+  "iteration": 1,
+  "minIterations": 1,
+  "maxIterations": 80,
+  "completionPromise": "COMPLETE",
+  "tasksMode": true,
+  "taskPromise": "READY_FOR_NEXT_TASK",
+  "prompt": "按顺序完成以下所有前端开发任务，完成后输出 <promise>COMPLETE</promise>：\n\n## Task 1 (最高优先): 创建缺失的 generate 路由\n文件路径: src/app/api/sbti/generate/route.ts\n需要实现: POST 接口，接收 sessionId，触发 AI 报告生成（先用模拟数据），返回生成状态\n\n## Task 2: 实现 Session 持久化\n文件: src/app/api/sbti/start/route.ts, answer/route.ts, complete/route.ts\n需要实现: 将 Map() 内存存储改为 sql.js 数据库存储\n\n## Task 3: 实现真实人格匹配\n文件: src/app/api/sbti/complete/route.ts\n需要实现: 从 session 存储的真实答案计算维度得分，而不是 Math.random()\n\n## Task 4: 题库数据化\n将 mockQuestions 从 API 路由移到数据库或独立配置文件\n\n## Task 5: 真实分享解锁逻辑\n文件: src/app/api/share-status/[shareCode]/route.ts\n需要实现: 真正的分享次数追踪和 unlock 状态更新\n\n## Task 6: 微信支付真实对接\n文件: src/app/api/sbti/payment/route.ts\n需要实现: 调用微信支付 v3 API 获取真实 prepay_id 和 qrCodeUrl\n\n## Task 7: 隐私页内容\n文件: src/app/privacy/page.tsx\n需要实现: 完整的隐私政策页面内容\n\n## Task 8: 协议页内容\n文件: src/app/terms/page.tsx\n需要实现: 完整的服务协议页面内容\n\n## Task 9: 扩充到 36 种精怪人格\n文件: src/app/api/sbti/complete/route.ts\n需要实现: 增加 11 种新人格（目前25种）\n\n## Task 10: 人格图片验证\n文件: public/images/personality/\n需要实现: 确认所有 36 种人格图片存在（目前25张）\n\n## Task 11: 数据库初始化\n创建数据库初始化脚本，设置表结构（sessions, answers, personalities, reports）\n\n## Task 12: git 提交所有变更\n将所有未提交的新文件和修改提交\n\n注意事项：\n- 使用中文交互\n- 遵循反AI设计原则（如果涉及UI）\n- 使用 Tailwind CSS\n- 保持山海经风格\n- 每完成一个 task 报告进度\n- 最终输出 <promise>COMPLETE</promise>",
+  "startedAt": "2026-04-25T15:07:56.271Z",
+  "model": "claude-sonnet-4-6",
+  "agent": "claude-code"
+}

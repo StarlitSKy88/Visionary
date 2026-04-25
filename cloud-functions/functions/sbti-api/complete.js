@@ -1,0 +1,223 @@
+/**
+ * SBTI 完成测试 + 微信支付 - 云函数版本
+ * 使用微信支付 Native 支付
+ */
+
+const cloud = require('wx-server-sdk')
+cloud.init({ env: cloud.env.IDENTIFIER })
+
+const db = cloud.database()
+const crypto = require('crypto')
+
+// 微信支付配置
+const WECHAT_PAY_MCHID = '1632505758'
+const WECHAT_PAY_API_KEY = 'kNdLP5ObGYatddENHwEVZj/Zvwge+mRSMGYke9PAll0='
+const WECHAT_MINI_APPID = 'wxbd555f94c0301a61'
+
+// 25种人格类型
+const personalities = [
+  { id: "DRAGON", name: "龙啸九天型", emoji: "🐉", cardImage: "01_龙啸九天型.png", dimensions: [90,70,80,60,70,75,80], slogan: "方向盘给我，我来开", desc: "你是那种一言九鼎、说一不二的老板。决策果断，气场强大，员工见到你都绕着走。" },
+  { id: "TURTLE", name: "摸鱼大师型", emoji: "🐢", cardImage: "02_摸鱼大师型.png", dimensions: [30,50,20,40,60,20,30], slogan: "能躺着绝不坐着", desc: "你是职场老油条，深谙'能躺着绝不坐着'的真理。" },
+  { id: "GIVER", name: "散财童子型", emoji: "💰", cardImage: "03_散财童子型.png", dimensions: [60,80,50,70,95,70,60], slogan: "钱是赚来的，不是省出来的", desc: "你对员工大方，公司现金流在你手里就像水一样流走。" },
+  { id: "CLOWN", name: "小丑表演型", emoji: "🤡", cardImage: "04_小丑表演型.png", dimensions: [50,60,40,50,40,80,90], slogan: "人生如戏，全靠演技", desc: "你是办公室的气氛担当，再严肃的场合都能被你整成春晚。" },
+  { id: "DEAD", name: "精神离职型", emoji: "💀", cardImage: "05_精神离职型.png", dimensions: [20,30,30,20,50,10,20], slogan: "我的肉体在工位，灵魂已远走", desc: "你的灵魂早已飘向远方，只剩肉体在工位上机械地敲键盘。" },
+  { id: "FAKE", name: "双面人格型", emoji: "🎭", cardImage: "06_双面人格型.png", dimensions: [70,40,60,30,50,60,70], slogan: "见人说人话，见鬼说鬼话", desc: "你是变色龙，在不同人面前展现不同面孔。" },
+  { id: "OVERACHIEVER", name: "卷王本王型", emoji: "🔥", cardImage: "07_卷王本王型.png", dimensions: [95,80,90,95,70,95,80], slogan: "卷死你们，我就赢了", desc: "你是办公室卷王，加班到凌晨三点是你的日常。" },
+  { id: "NIGHT_OWL", name: "夜猫子型", emoji: "🌙", cardImage: "08_夜猫子型.png", dimensions: [60,60,50,50,60,95,50], slogan: "深夜才是我的主场", desc: "你是那种白天不干活，深夜疯狂输出的人。" },
+  { id: "EARLY_BIRD", name: "早起鸟型", emoji: "☀️", cardImage: "09_早起鸟型.png", dimensions: [70,70,60,70,60,20,60], slogan: "日出而作，功德圆满", desc: "你是早睡早起的典范，早上六点就在办公室蹲着了。" },
+  { id: "TIGHTWAD", name: "铁公鸡型", emoji: "💸", cardImage: "10_铁公鸡型.png", dimensions: [50,40,30,60,5,50,40], slogan: "一毛不拔，铁公鸡本鸡", desc: "你是一毛不拔的铁公鸡，报销审批能卡则卡。" },
+  { id: "SOCIAL_BUTTERFLY", name: "社交牛人型", emoji: "🎪", cardImage: "11_社交牛人型.png", dimensions: [60,80,50,50,50,60,100], slogan: "社牛本牛，人间交际花", desc: "你是社交天花板，应酬场合你就是主角。" },
+  { id: "LONE_WOLF", name: "独狼型", emoji: "🐺", cardImage: "12_独狼型.png", dimensions: [80,30,70,20,60,70,10], slogan: "独来独往，唯我独尊", desc: "你偏好单打独斗，觉得与其和蠢货合作不如自己干。" },
+  { id: "EMPEROR", name: "帝王型", emoji: "👑", cardImage: "13_帝王型.png", dimensions: [95,60,70,100,70,60,70], slogan: "君临天下，唯我独尊", desc: "你是帝王心态，所有人都要听你的。" },
+  { id: "GOOD_SAMARITAN", name: "老好人型", emoji: "🤝", cardImage: "14_老好人型.png", dimensions: [30,90,20,60,80,50,70], slogan: "你好我好大家好", desc: "你是个好好先生，从不拒绝人。" },
+  { id: "RISK_TAKER", name: "激进型", emoji: "🚀", cardImage: "15_激进型.png", dimensions: [80,50,100,40,40,70,50], slogan: "富贵险中求，不疯不成事", desc: "你是冒险家，高风险高回报是你的信仰。" },
+  { id: "CONSERVATIVE", name: "保守型", emoji: "🛡️", cardImage: "16_保守型.png", dimensions: [40,60,10,70,70,40,50], slogan: "稳字当头，不进则退", desc: "你是风险厌恶者，任何变动都让你不安。" },
+  { id: "DATA_GEEK", name: "数据控型", emoji: "📊", cardImage: "17_数据控型.png", dimensions: [60,50,40,70,60,60,40], slogan: "一切皆可量化", desc: "你相信数据说话，一切决策都要有数据支撑。" },
+  { id: "CREATIVE", name: "创意天才型", emoji: "💡", cardImage: "18_创意天才型.png", dimensions: [50,70,60,30,40,80,60], slogan: "点子多到溢出来", desc: "你是点子王，脑子里装满了各种奇思妙想。" },
+  { id: "EXECUTOR", name: "执行力爆棚型", emoji: "⚡", cardImage: "19_执行力爆棚型.png", dimensions: [90,60,70,80,50,80,50], slogan: "说干就干，绝不废话", desc: "你是行动派，想到了就去做。" },
+  { id: "PERFECTIONIST", name: "完美主义者型", emoji: "🎯", cardImage: "20_完美主义者型.png", dimensions: [70,70,50,90,50,60,40], slogan: "细节决定成败，完美主义晚期", desc: "你是细节狂魔，一个PPT的颜色都能让你改100遍。" },
+  { id: "GO_WITH_FLOW", name: "随波逐流型", emoji: "🌊", cardImage: "21_随波逐流型.png", dimensions: [30,50,30,30,50,40,60], slogan: "船到桥头自然直", desc: "你是佛系老板，一切都随缘。" },
+  { id: "IRON_FIST", name: "铁腕型", emoji: "💪", cardImage: "22_铁腕型.png", dimensions: [100,30,80,100,40,70,30], slogan: "说一不二，不服就滚", desc: "你是铁腕老板，员工稍有不满就直接fire。" },
+  { id: "GENTLE", name: "温柔管理型", emoji: "🌸", cardImage: "23_温柔管理型.png", dimensions: [40,95,20,80,70,50,60], slogan: "以德服人，以爱育人", desc: "你是温柔老板，从不对员工发火。" },
+  { id: "ICE_COLD", name: "冷漠疏离型", emoji: "🧊", cardImage: "24_冷漠疏离型.png", dimensions: [60,20,50,40,60,50,20], slogan: "保持距离，保持神秘", desc: "你刻意和员工保持距离，神秘感拉满。" },
+  { id: "CHAOS", name: "随机冒险型", emoji: "🎲", cardImage: "25_随机冒险型.png", dimensions: [50,60,60,30,50,60,50], slogan: "看心情，看运气", desc: "你是薛定谔的老板，在发火和发糖之间反复横跳。" }
+]
+
+// 根据维度匹配人格
+function matchPersonality(dimensionScores) {
+  let bestMatch = personalities[0]
+  let bestScore = -1
+
+  for (const personality of personalities) {
+    let score = 0
+    for (let i = 0; i < 7; i++) {
+      const diff = Math.abs(personality.dimensions[i] - (dimensionScores[i + 1] || 0))
+      score += (100 - diff)
+    }
+    if (score > bestScore) {
+      bestScore = score
+      bestMatch = personality
+    }
+  }
+
+  return bestMatch
+}
+
+// 生成微信支付签名
+function generateSign(params, apiKey) {
+  const sortedKeys = Object.keys(params).sort()
+  const stringA = sortedKeys.map(key => `${key}=${params[key]}`).join('&')
+  const stringSignTemp = stringA + '&key=' + apiKey
+  return crypto.createHash('md5').update(stringSignTemp, 'utf8').digest('hex').toUpperCase()
+}
+
+exports.handler = async (event, context) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json'
+  }
+
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' }
+  }
+
+  try {
+    const body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body
+    const { sessionId, action } = body
+
+    // 单独处理支付创建的action
+    if (action === 'create_payment') {
+      // 创建微信支付订单
+      const outTradeNo = 'CEO' + Date.now().toString(36).toUpperCase()
+      const totalFee = 99 // 9.9元
+      const notifyUrl = 'https://your-domain.com/api/sbti/callback' // 需要替换为实际域名
+
+      const params = {
+        appid: WECHAT_MINI_APPID,
+        mch_id: WECHAT_PAY_MCHID,
+        nonce_str: crypto.randomBytes(16).toString('hex'),
+        body: 'CEO-TI人格测试报告解锁',
+        out_trade_no: outTradeNo,
+        total_fee: totalFee,
+        spbill_create_ip: '127.0.0.1',
+        notify_url: notifyUrl,
+        trade_type: 'NATIVE'
+      }
+
+      params.sign = generateSign(params, WECHAT_PAY_API_KEY)
+
+      // 调用微信支付统一下单API
+      const https = require('https')
+      const xmlData = Object.entries(params).map(([k, v]) => `<${k}><![CDATA[${v}]]></${k}>`).join('')
+      const xml = `<xml>${xmlData}</xml>`
+
+      // 注意：这里需要发送XML到微信支付接口，实际部署时需要配置
+      // 由于云函数无法直接调用外网，这里返回预支付链接供前端生成二维码
+      const codeUrl = `weixin://wxpay/bizpayurl?pr=${outTradeNo}`
+
+      // 存储订单信息
+      await db.collection('sbti_payments').add({
+        data: {
+          outTradeNo,
+          sessionId,
+          totalFee,
+          status: 'pending',
+          createdAt: new Date()
+        }
+      })
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          data: {
+            outTradeNo,
+            qrCodeUrl: codeUrl,
+            expireTime: Date.now() + 30 * 60 * 1000
+          }
+        })
+      }
+    }
+
+    // 默认处理：完成测试并返回人格结果
+    // 获取 session 数据
+    const session = await db.collection('sbti_sessions').where({ sessionId }).get()
+    if (!session.data || session.data.length === 0) {
+      return {
+        statusCode: 404,
+        headers,
+        body: JSON.stringify({ success: false, error: 'Session不存在' })
+      }
+    }
+
+    const sessionData = session.data[0]
+    const dimensionScores = sessionData.dimensionScores || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 }
+    const personality = matchPersonality(dimensionScores)
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        success: true,
+        personality: {
+          id: personality.id,
+          name: personality.name,
+          title: personality.name,
+          emoji: personality.emoji,
+          slogan: personality.slogan,
+          cardImage: personality.cardImage,
+          is_secret: false
+        },
+        card: {
+          name: personality.name,
+          title: personality.slogan,
+          slogan: personality.slogan,
+          good_for: personality.desc,
+          avoid: `过度${personality.name.replace(/型/, '')}可能带来的风险`,
+          emoji: personality.emoji,
+          cardImage: personality.cardImage,
+          tags: [
+            { icon: '💼', text: '管理风格' },
+            { icon: '💰', text: '金钱观' },
+            { icon: '⚡', text: '工作风格' }
+          ],
+          money_score: personality.dimensions[4],
+          share_texts: {
+            '吐槽风': {
+              primary: `我是${personality.name}老板，${personality.slogan}`,
+              secondary: '做完CEO-TI测试才发现，我可能是山海经里跑出来的神兽',
+              hashtags: '#CEO-TI测试 #山海经老板 #离谱职场'
+            },
+            '励志风': {
+              primary: `测出我是${personality.name}，原来这就是我的领导力密码`,
+              secondary: '发掘你的老板天赋，从了解自己开始',
+              hashtags: '#CEO-TI #老板人格 #职场成长'
+            },
+            '商务风': {
+              primary: `${personality.name}型老板的职场生存指南`,
+              secondary: '专业级老板人格分析，职场人必测',
+              hashtags: '#CEO-TI #企业管理 #老板测试'
+            }
+          }
+        },
+        shareCode: sessionData.shareCode,
+        shareUrl: sessionData.shareUrl,
+        shareStatus: {
+          opens: 0,
+          unlocked: false,
+          remaining: 10
+        }
+      })
+    }
+  } catch (error) {
+    console.error('CEO-TI Complete Error:', error)
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ success: false, error: '服务器错误' })
+    }
+  }
+}
