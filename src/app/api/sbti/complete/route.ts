@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getSession } from '@/lib/sbti-db'
 
 // 25种人格类型定义
 const personalities = [
@@ -61,19 +62,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 模拟维度得分（实际应从session获取）
-    const dimensionScores = {
-      1: Math.floor(Math.random() * 50) + 30,
-      2: Math.floor(Math.random() * 50) + 30,
-      3: Math.floor(Math.random() * 50) + 30,
-      4: Math.floor(Math.random() * 50) + 30,
-      5: Math.floor(Math.random() * 50) + 30,
-      6: Math.floor(Math.random() * 50) + 30,
-      7: Math.floor(Math.random() * 50) + 30
+    // 从数据库获取真实的维度得分
+    const session = await getSession(sessionId)
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: 'Session不存在' },
+        { status: 404 }
+      )
     }
+
+    // 使用 session 中存储的真实维度得分
+    const dimensionScores = session.dimensionScores
 
     // 匹配人格
     const personality = matchPersonality(dimensionScores)
+
+    // 生成报告ID
+    const reportId = `RPT${Date.now().toString(36).toUpperCase()}`
 
     return NextResponse.json({
       success: true,
@@ -118,12 +123,12 @@ export async function POST(request: NextRequest) {
           }
         }
       },
-      shareCode: `CEO${Date.now().toString(36).toUpperCase()}`,
-      shareUrl: `https://ceo-ti.com/share/${sessionId}`,
+      shareCode: session.shareCode,
+      shareUrl: session.shareUrl,
       shareStatus: {
-        opens: 0,
-        unlocked: true,
-        remaining: 0
+        opens: session.shareOpens,
+        unlocked: session.shareUnlocked,
+        remaining: Math.max(0, 3 - session.shareOpens)
       }
     })
   } catch (error) {
