@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createSession, getDb, initSchema, saveDb } from '@/lib/sbti-db'
 
 // 模拟题库，实际使用时从数据库获取
 const mockQuestions = [
@@ -268,8 +269,7 @@ const mockQuestions = [
   }
 ]
 
-// 存储session的内存数据库
-const sessions = new Map()
+// Session 已迁移到 sql.js 数据库持久化
 
 export async function POST(request: NextRequest) {
   try {
@@ -283,29 +283,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 创建新session
-    const sessionId = Date.now() + Math.random()
-    const session = {
-      id: sessionId,
-      deviceId,
-      lang,
-      currentQuestionIndex: 0,
-      answers: [] as { questionId: number; answer: string }[],
-      dimensionScores: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 },
-      createdAt: new Date().toISOString(),
-      status: 'active'
-    }
+    // 创建新session（使用 sql.js 持久化）
+    const session = await createSession(deviceId, lang)
 
-    sessions.set(sessionId, session)
-
-    // 返回第一题
     const firstQuestion = mockQuestions[0]
 
     return NextResponse.json({
       success: true,
-      sessionId,
-      shareCode: `CEO${sessionId.toString(36).toUpperCase()}`,
-      shareUrl: `https://ceo-ti.com/share/${sessionId}`,
+      sessionId: session.id,
+      shareCode: session.shareCode,
+      shareUrl: session.shareUrl,
       currentQuestion: firstQuestion.id,
       question: firstQuestion
     })

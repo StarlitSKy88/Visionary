@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getSession, updateSessionAnswer } from '@/lib/sbti-db'
 
 // 模拟题库
 const mockQuestions = [
@@ -40,9 +41,6 @@ const aiThoughts = [
   "这个选择嘛...嗯，很符合我对老板的想象"
 ]
 
-// 内存session存储
-const sessions = new Map()
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -55,19 +53,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 获取或创建session
-    let session = sessions.get(sessionId)
+    // 从数据库获取session
+    const session = await getSession(sessionId)
     if (!session) {
-      session = {
-        id: sessionId,
-        currentQuestionIndex: questionId,
-        answers: [],
-        dimensionScores: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 }
-      }
+      return NextResponse.json(
+        { success: false, error: 'Session不存在' },
+        { status: 404 }
+      )
     }
-
-    // 记录答案
-    session.answers.push({ questionId, answer })
 
     // 获取当前题目
     const question = mockQuestions.find(q => q.id === questionId)
@@ -88,23 +81,24 @@ export async function POST(request: NextRequest) {
     }
 
     // 更新维度得分
+    const dimensionScores = { ...session.dimensionScores }
     for (const [dim, score] of Object.entries(selectedOption.scores)) {
-      session.dimensionScores[parseInt(dim)] = (session.dimensionScores[parseInt(dim)] || 0) + score
+      dimensionScores[parseInt(dim)] = (dimensionScores[parseInt(dim)] || 0) + score
     }
+
+    // 保存到数据库
+    await updateSessionAnswer(sessionId, questionId, answer, dimensionScores)
 
     // 获取下一题
     const nextQuestionIndex = questionId + 1
     const nextQuestion = mockQuestions.find(q => q.id === nextQuestionIndex)
-
-    // 更新session
-    sessions.set(sessionId, session)
 
     // 随机生成AI思考
     const aiThinking = aiThoughts[Math.floor(Math.random() * aiThoughts.length)]
 
     return NextResponse.json({
       success: true,
-      dimensionScores: session.dimensionScores,
+      dimensionScores,
       aiThinking,
       nextQuestion: nextQuestion ? {
         id: nextQuestion.id,
