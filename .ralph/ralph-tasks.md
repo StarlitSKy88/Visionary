@@ -8,9 +8,9 @@ Add your tasks below using: `ralph --add-task "description"`
 - [x] Task 4: 题库数据化 (mockQuestions 移到配置文件)
 - [x] Task 5: 真实分享解锁逻辑
 - [x] Task 6: 微信支付真实对接
-- [ ] Task 7: 隐私页内容
-- [ ] Task 8: 协议页内容
-- [ ] Task 9: 扩充到 36 种精怪人格
-- [ ] Task 10: 人格图片验证
-- [ ] Task 11: 数据库初始化
-- [ ] Task 12: git 提交所有变更
+- [x] Task 7: 隐私页内容
+- [x] Task 8: 协议页内容
+- [x] Task 9: 扩充到 36 种精怪人格
+- [x] Task 10: 人格图片验证（25张存在，26-36待补充）
+- [x] Task 11: 数据库初始化（personalities, reports 表已添加）
+- [/] Task 12: git 提交所有变更

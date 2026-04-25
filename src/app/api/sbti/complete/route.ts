@@ -27,7 +27,18 @@ const personalities = [
   { id: "IRON_FIST", name: "铁腕型", emoji: "💪", cardImage: "22_铁腕型.png", dimensions: [100,30,80,100,40,70,30], slogan: "说一不二，不服就滚", desc: "你是铁腕老板，员工稍有不满就直接fire。你是暴君但公司效率确实高。" },
   { id: "GENTLE", name: "温柔管理型", emoji: "🌸", cardImage: "23_温柔管理型.png", dimensions: [40,95,20,80,70,50,60], slogan: "以德服人，以爱育人", desc: "你是温柔老板，从不对员工发火。但有时候太软弱被欺负。" },
   { id: "ICE_COLD", name: "冷漠疏离型", emoji: "🧊", cardImage: "24_冷漠疏离型.png", dimensions: [60,20,50,40,60,50,20], slogan: "保持距离，保持神秘", desc: "你刻意和员工保持距离，神秘感拉满。没人真正了解你。" },
-  { id: "CHAOS", name: "随机冒险型", emoji: "🎲", cardImage: "25_随机冒险型.png", dimensions: [50,60,60,30,50,60,50], slogan: "看心情，看运气", desc: "你是薛定谔的老板，在发火和发糖之间反复横跳。没人知道下一秒你会怎样。" }
+  { id: "CHAOS", name: "随机冒险型", emoji: "🎲", cardImage: "25_随机冒险型.png", dimensions: [50,60,60,30,50,60,50], slogan: "看心情，看运气", desc: "你是薛定谔的老板，在发火和发糖之间反复横跳。没人知道下一秒你会怎样。" },
+  { id: "FOX", name: "狐智型", emoji: "🦊", cardImage: "26_狐智型.png", dimensions: [70,90,50,40,50,70,60], slogan: "狡兔三窟，智珠在握", desc: "你是精明狡猾的老板，看透人心，谈判桌上从不吃亏。员工觉得你深不可测。" },
+  { id: "PHOENIX", name: "涅槃型", emoji: "🔥", cardImage: "27_涅槃型.png", dimensions: [70,60,70,50,50,80,80], slogan: "置之死地而后生", desc: "你是打不死的小强，越挫越勇。每次跌倒都能以更华丽姿态站起。" },
+  { id: "WHITE_TIGER", name: "白虎型", emoji: "🐯", cardImage: "28_白虎型.png", dimensions: [90,40,80,90,50,50,40], slogan: "杀气腾腾，威震四方", desc: "你是威猛霸气的老板，不怒自威。员工见到你腿就软。" },
+  { id: "BLACK_TURTLE", name: "玄武型", emoji: "🐢", cardImage: "29_玄武型.png", dimensions: [60,50,40,80,70,30,50], slogan: "稳如磐石，深不可测", desc: "你是沉稳老练的老板，滴水不漏。永远留有后手，让人摸不透。" },
+  { id: "GREEN_DRAGON", name: "青龙型", emoji: "🐲", cardImage: "30_青龙型.png", dimensions: [85,70,75,70,65,65,75], slogan: "东方神兽，统御四方", desc: "你是天赋异禀的领导，四海之内皆臣服。格局大，气场强，天生的领袖。" },
+  { id: "VERMILION_BIRD", name: "朱雀型", emoji: "🦅", cardImage: "31_朱雀型.png", dimensions: [60,85,50,40,60,90,70], slogan: "浴火重生，热情如火", desc: "你是热情似火的老板，点燃团队激情。但有时候热情来得快去得也快。" },
+  { id: "PIRXIU", name: "貔貅型", emoji: "🦅", cardImage: "32_貔貅型.png", dimensions: [70,30,60,90,10,60,30], slogan: "只进不出，聚财有道", desc: "你是吸金能力超强的老板，账上有钱心里不慌。但员工报销难如登天。" },
+  { id: "KIRIN", name: "麒麟型", emoji: "🦄", cardImage: "33_麒麟型.png", dimensions: [50,95,30,70,80,50,80], slogan: "仁厚祥和，祥瑞之兽", desc: "你是仁厚善良的老板，关心员工福祉。公司氛围温馨如家。" },
+  { id: "BAIZE", name: "白泽型", emoji: "🦌", cardImage: "34_白泽型.png", dimensions: [60,70,40,80,70,70,50], slogan: "博古通今，睿智如渊", desc: "你是博学多才的老板，知识渊博，洞察秋毫。开会时引经据典，员工佩服。" },
+  { id: "KUN_PENG", name: "鲲鹏型", emoji: "🐋", cardImage: "35_鲲鹏型.png", dimensions: [80,60,90,50,60,70,90], slogan: "扶摇直上九万里", desc: "你是格局宏大的老板，想法天马行空。别人看一步，你想百步。但执行力存疑。" },
+  { id: "NIAN", name: "年兽型", emoji: "👹", cardImage: "36_年兽型.png", dimensions: [85,20,70,70,40,40,30], slogan: "神秘莫测，不敢近前", desc: "你是传说级老板，江湖上只有你的传说。员工只在年度大会见过你一次。" }
 ]
 
 // 根据维度得分匹配人格

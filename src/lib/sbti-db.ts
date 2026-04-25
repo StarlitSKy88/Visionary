@@ -62,6 +62,30 @@ export function initSchema(database: Database) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_visitors_share ON sbti_share_visitors(share_code);
+
+    CREATE TABLE IF NOT EXISTS sbti_personalities (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      emoji TEXT,
+      card_image TEXT,
+      dimensions TEXT DEFAULT '[]',
+      slogan TEXT,
+      description TEXT,
+      dimensions_label TEXT DEFAULT '["权威指数","人心指数","创意指数","完美指数","慷慨指数","夜猫指数","社交指数"]'
+    );
+
+    CREATE TABLE IF NOT EXISTS sbti_reports (
+      id TEXT PRIMARY KEY,
+      session_id TEXT,
+      personality_id TEXT,
+      personality_name TEXT,
+      report_content TEXT,
+      report_image_url TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (session_id) REFERENCES sbti_sessions(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_reports_session ON sbti_reports(session_id);
   `)
 }
 
