@@ -6,7 +6,7 @@ Add your tasks below using: `ralph --add-task "description"`
 - [x] Task 2: 实现 Session 持久化 (Map() → sql.js)
 - [x] Task 3: 实现真实人格匹配 (从 session 存储的真实答案计算维度得分)
 - [x] Task 4: 题库数据化 (mockQuestions 移到配置文件)
-- [ ] Task 5: 真实分享解锁逻辑
+- [x] Task 5: 真实分享解锁逻辑
 - [ ] Task 6: 微信支付真实对接
 - [ ] Task 7: 隐私页内容
 - [ ] Task 8: 协议页内容

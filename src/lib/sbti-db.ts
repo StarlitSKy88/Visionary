@@ -50,6 +50,16 @@ export function initSchema(database: Database) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_answers_session ON sbti_answers(session_id);
+
+    CREATE TABLE IF NOT EXISTS sbti_share_visitors (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      share_code TEXT NOT NULL,
+      visitor_id TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(share_code, visitor_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_visitors_share ON sbti_share_visitors(share_code);
   `)
 }
 

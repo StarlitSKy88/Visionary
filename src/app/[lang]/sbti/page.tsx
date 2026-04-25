@@ -125,10 +125,13 @@ export default function SBTIPage() {
   const fetchShareStatus = async () => {
     if (!shareCode) return
     try {
-      const res = await fetch(`/api/share-status/${shareCode}`)
+      const res = await fetch(`/api/sbti/share-status/${shareCode}`)
       if (res.ok) {
-        const data = await res.json()
-        setShareStatus(data)
+        const result = await res.json()
+        if (result.success && result.data) {
+          const { opens, unlocked } = result.data
+          setShareStatus({ opens, unlocked, remaining: 3 - opens })
+        }
       }
     } catch {
       // 忽略错误
