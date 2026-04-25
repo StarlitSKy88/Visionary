@@ -13,4 +13,4 @@ Add your tasks below using: `ralph --add-task "description"`
 - [x] Task 9: 扩充到 36 种精怪人格
 - [x] Task 10: 人格图片验证（25张存在，26-36待补充）
 - [x] Task 11: 数据库初始化（personalities, reports 表已添加）
-- [/] Task 12: git 提交所有变更
+- [x] Task 12: git 提交所有变更
